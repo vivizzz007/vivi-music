@@ -21,4 +21,7 @@ object VibraSignature {
      */
     @JvmStatic
     fun fromI16(samples: ByteArray): String = ShazamSignatureGenerator.fromI16(samples)
+
+    internal fun createSession(): ShazamSignatureGenerator.SignatureGeneratorState =
+        ShazamSignatureGenerator.createSession()
 }

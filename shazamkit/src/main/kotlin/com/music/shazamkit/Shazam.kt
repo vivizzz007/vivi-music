@@ -19,6 +19,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -43,7 +44,7 @@ object Shazam {
     // Configuration
     private const val MAX_CONCURRENT_REQUESTS = 2
     
-    private const val MIN_REQUEST_INTERVAL_MS = 1000L
+    private const val MIN_REQUEST_INTERVAL_MS = 500L
     
     private const val MAX_RETRIES = 3
     
@@ -59,6 +60,8 @@ object Shazam {
     private var lastRequestTime = 0L
     
     private val requestMutex = Mutex()
+
+    private val rateLimitMutex = Mutex()
     
     private val requestQueue = ConcurrentLinkedQueue<PendingRequest>()
     
@@ -83,7 +86,7 @@ object Shazam {
             expectSuccess = false
             
             engine {
-                requestTimeout = 30000
+                requestTimeout = 8000
             }
         }
     }
@@ -138,7 +141,10 @@ object Shazam {
      * Cancel all pending requests
      */
     fun cancelPendingRequests() {
-        requestQueue.clear()
+        while (true) {
+            val req = requestQueue.poll() ?: break
+            req.deferred.cancel()
+        }
     }
 
     /**
@@ -156,26 +162,27 @@ object Shazam {
     private suspend fun enqueueRequest(
         signature: String,
         sampleDurationMs: Long
-    ): Result<RecognitionResult> = requestMutex.withLock {
-        if (requestQueue.size >= MAX_QUEUE_SIZE) {
-            return Result.failure(Exception("Request queue is full. Please wait."))
+    ): Result<RecognitionResult> {
+        val request = requestMutex.withLock {
+            if (requestQueue.size >= MAX_QUEUE_SIZE) {
+                return Result.failure(Exception("Request queue is full. Please wait."))
+            }
+
+            val requestId = nextRequestId++
+            PendingRequest(
+                id = requestId,
+                signature = signature,
+                sampleDurationMs = sampleDurationMs
+            ).also {
+                requestQueue.offer(it)
+                if (!isProcessingQueue) {
+                    isProcessingQueue = true
+                    scope.launch { processQueue() }
+                }
+            }
         }
 
-        val requestId = nextRequestId++
-        val request = PendingRequest(
-            id = requestId,
-            signature = signature,
-            sampleDurationMs = sampleDurationMs
-        )
-
-        requestQueue.offer(request)
-
-        if (!isProcessingQueue) {
-            isProcessingQueue = true
-            processQueue()
-        }
-
-        return request.awaitResult()
+        return request.deferred.await()
     }
 
     /**
@@ -183,10 +190,19 @@ object Shazam {
      */
     private suspend fun processQueue() {
         while (true) {
-            val request = requestQueue.poll() ?: break
+            val request = requestQueue.poll()
+            if (request == null) {
+                requestMutex.withLock {
+                    if (requestQueue.isEmpty()) {
+                        isProcessingQueue = false
+                        return
+                    }
+                }
+                continue
+            }
 
             while (activeRequests.get() >= MAX_CONCURRENT_REQUESTS) {
-                delay(100)
+                delay(50)
             }
 
             activeRequests.incrementAndGet()
@@ -194,18 +210,14 @@ object Shazam {
             scope.launch {
                 try {
                     val result = executeRequest(request.signature, request.sampleDurationMs)
-                    request.completeWith(result)
+                    request.deferred.complete(result)
                 } catch (e: Exception) {
-                    request.completeWith(Result.failure(e))
+                    request.deferred.complete(Result.failure(e))
                 } finally {
                     activeRequests.decrementAndGet()
                 }
             }
-
-            enforceRateLimit()
         }
-
-        isProcessingQueue = false
     }
 
     /**
@@ -305,7 +317,7 @@ object Shazam {
     /**
      * Enforce minimum time between requests
      */
-    private suspend fun enforceRateLimit() {
+    private suspend fun enforceRateLimit() = rateLimitMutex.withLock {
         val currentTime = System.currentTimeMillis()
         val timeSinceLastRequest = currentTime - lastRequestTime
 
@@ -432,24 +444,9 @@ object Shazam {
     private class PendingRequest(
         val id: Long,
         val signature: String,
-        val sampleDurationMs: Long
-    ) {
-        private val mutex = Mutex()
-        private var result: Result<RecognitionResult>? = null
-        private var isCompleted = false
-
-        suspend fun awaitResult(): Result<RecognitionResult> {
-            while (!isCompleted) {
-                delay(50)
-            }
-            return result ?: Result.failure(Exception("Result not received"))
-        }
-
-        fun completeWith(result: Result<RecognitionResult>) {
-            this.result = result
-            this.isCompleted = true
-        }
-    }
+        val sampleDurationMs: Long,
+        val deferred: CompletableDeferred<Result<RecognitionResult>> = CompletableDeferred()
+    )
 
     /**
      * Cached result

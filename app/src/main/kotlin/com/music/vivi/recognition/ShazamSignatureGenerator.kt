@@ -13,6 +13,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.ln
 import kotlin.math.max
+import kotlin.math.sin
 
 /**
  * Pure Kotlin implementation of the Shazam audio fingerprinting algorithm.
@@ -26,6 +27,7 @@ internal object ShazamSignatureGenerator {
 
     private const val SAMPLE_RATE = 16_000
     private const val FFT_SIZE = 2048
+    private const val FFT_STAGES = 11
     private const val FFT_OUTPUT_SIZE = FFT_SIZE / 2 + 1  // 1025
     private const val MAX_PEAKS = 255
     private const val MAX_TIME_SECONDS = 12.0
@@ -39,6 +41,24 @@ internal object ShazamSignatureGenerator {
     private const val BAND_1450_3500 = 2
     private const val BAND_3500_5500 = 3
 
+    private val TIME_SPREAD_OFFSETS = intArrayOf(-1, -3, -6)
+    private val NEIGHBOR_OFFSETS = intArrayOf(-10, -7, -4, -3, 1, 2, 5, 8)
+    private val OTHER_OFFSETS = intArrayOf(-53, -45, 165, 172, 179, 186, 193, 200, 214, 221, 228, 235, 242, 249)
+
+    private val BIT_REVERSE = IntArray(FFT_SIZE) { i ->
+        Integer.reverse(i) ushr (32 - FFT_STAGES)
+    }
+
+    private val TWIDDLE_RE = Array(FFT_STAGES) { stage ->
+        val halfLen = 1 shl stage
+        DoubleArray(halfLen) { k -> cos(-PI * k / halfLen) }
+    }
+
+    private val TWIDDLE_IM = Array(FFT_STAGES) { stage ->
+        val halfLen = 1 shl stage
+        DoubleArray(halfLen) { k -> sin(-PI * k / halfLen) }
+    }
+
     /**
      * Hanning window: w[i] = 0.5 * (1 - cos(2π*(i+1)/2049)) for i=0..2047.
      *
@@ -47,6 +67,8 @@ internal object ShazamSignatureGenerator {
     private val HANNING = DoubleArray(FFT_SIZE) { i ->
         0.5 * (1.0 - cos(2.0 * PI * (i + 1).toDouble() / 2049.0))
     }
+
+    fun createSession(): SignatureGeneratorState = SignatureGeneratorState()
 
     /**
      * Generates a Shazam-compatible audio fingerprint from raw 16-bit PCM samples.
@@ -58,15 +80,21 @@ internal object ShazamSignatureGenerator {
         require(samples.size >= 2 && samples.size % 2 == 0) {
             "samples must be a non-empty byte array with even length (16-bit PCM)"
         }
-        val pcm = ShortArray(samples.size / 2)
-        ByteBuffer.wrap(samples).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(pcm)
-        return SignatureGeneratorState().process(pcm)
+        return SignatureGeneratorState().apply {
+            feedI16(samples, samples.size)
+        }.encodeSignature()
     }
 
-    private class SignatureGeneratorState {
+    internal class SignatureGeneratorState {
         // Circular buffer for 2048 raw samples (as Shorts stored in Int for speed)
         private val samplesRing = IntArray(FFT_SIZE)
         private var samplesPos = 0
+        private var hopCount = 0
+
+        // Reusable FFT and spread scratch buffers to avoid per-hop allocations
+        private val fftRe = DoubleArray(FFT_SIZE)
+        private val fftIm = DoubleArray(FFT_SIZE)
+        private val spreadScratch = DoubleArray(FFT_OUTPUT_SIZE)
 
         // Circular buffer of FFT magnitude outputs (RING_BUF_SIZE x FFT_OUTPUT_SIZE)
         private val fftOutputs = Array(RING_BUF_SIZE) { DoubleArray(FFT_OUTPUT_SIZE) }
@@ -85,36 +113,80 @@ internal object ShazamSignatureGenerator {
         private val bandPeaks = Array(4) { mutableListOf<FrequencyPeak>() }
         private var totalPeaks = 0
 
-        fun process(pcm: ShortArray): String {
-            var offset = 0
-            while (offset + 128 <= pcm.size) {
+        val sampleDurationMs: Long
+            get() = numSamples * 1000L / SAMPLE_RATE
+
+        fun feedI16(bytes: ByteArray, length: Int = bytes.size) {
+            val evenLen = length and 1.inv()
+            var i = 0
+            val mask = FFT_SIZE - 1
+            while (i < evenLen) {
                 // Match C++ stopping condition: stop when BOTH time≥max AND peaks≥max
-                val elapsedSec = numSamples.toDouble() / SAMPLE_RATE
-                if (elapsedSec >= MAX_TIME_SECONDS && totalPeaks >= MAX_PEAKS) break
-
-                numSamples += 128
-                feedSamples(pcm, offset, 128)
-                doFFT()
-                doPeakSpreadingAndRecognition()
-                offset += 128
-            }
-            return encodeSignature()
-        }
-
-        private fun feedSamples(pcm: ShortArray, start: Int, count: Int) {
-            for (k in start until start + count) {
-                samplesRing[samplesPos] = pcm[k].toInt()
-                samplesPos = (samplesPos + 1) % FFT_SIZE
+                if (numSamples.toDouble() / SAMPLE_RATE >= MAX_TIME_SECONDS && totalPeaks >= MAX_PEAKS) {
+                    break
+                }
+                val lo = bytes[i].toInt() and 0xFF
+                val hi = bytes[i + 1].toInt()
+                samplesRing[samplesPos] = (hi shl 8) or lo
+                samplesPos = (samplesPos + 1) and mask
+                numSamples++
+                hopCount++
+                if (hopCount == 128) {
+                    hopCount = 0
+                    doFFT()
+                    doPeakSpreadingAndRecognition()
+                }
+                i += 2
             }
         }
 
         private fun doFFT() {
-            // Build windowed excerpt from ring buffer (oldest → newest)
-            val windowed = DoubleArray(FFT_SIZE) { i ->
-                samplesRing[(samplesPos + i) % FFT_SIZE].toDouble() * HANNING[i]
+            val re = fftRe
+            val im = fftIm
+            val ring = samplesRing
+            val pos = samplesPos
+            val mask = FFT_SIZE - 1
+
+            for (i in 0 until FFT_SIZE) {
+                val rev = BIT_REVERSE[i]
+                re[rev] = ring[(pos + i) and mask].toDouble() * HANNING[i]
+                im[rev] = 0.0
             }
-            val result = computeRfft(windowed)
-            result.copyInto(fftOutputs[fftPos])
+
+            for (stage in 0 until FFT_STAGES) {
+                val halfLen = 1 shl stage
+                val len = halfLen shl 1
+                val wReArr = TWIDDLE_RE[stage]
+                val wImArr = TWIDDLE_IM[stage]
+                var i = 0
+                while (i < FFT_SIZE) {
+                    for (k in 0 until halfLen) {
+                        val u = i + k
+                        val v = u + halfLen
+                        val wRe = wReArr[k]
+                        val wIm = wImArr[k]
+                        val evenRe = re[u]
+                        val evenIm = im[u]
+                        val oddRe = re[v] * wRe - im[v] * wIm
+                        val oddIm = re[v] * wIm + im[v] * wRe
+                        re[u] = evenRe + oddRe
+                        im[u] = evenIm + oddIm
+                        re[v] = evenRe - oddRe
+                        im[v] = evenIm - oddIm
+                    }
+                    i += len
+                }
+            }
+
+            val out = fftOutputs[fftPos]
+            val scaleFactor = 1.0 / (1 shl 17)
+            val minVal = 1e-10
+            for (idx in 0 until FFT_OUTPUT_SIZE) {
+                val r = re[idx]
+                val img = im[idx]
+                val mag = (r * r + img * img) * scaleFactor
+                out[idx] = if (mag < minVal) minVal else mag
+            }
             fftPos = (fftPos + 1) % RING_BUF_SIZE
             fftNumWritten++
         }
@@ -129,7 +201,8 @@ internal object ShazamSignatureGenerator {
         private fun doPeakSpreading() {
             // Start with a copy of the last FFT output
             val lastFftIdx = (fftPos - 1 + RING_BUF_SIZE) % RING_BUF_SIZE
-            val spread = fftOutputs[lastFftIdx].copyOf()
+            val spread = spreadScratch
+            fftOutputs[lastFftIdx].copyInto(spread)
 
             // Frequency spreading: 3-point running max (in-place, forward pass)
             for (pos in 0 until FFT_OUTPUT_SIZE - 2) {
@@ -140,15 +213,12 @@ internal object ShazamSignatureGenerator {
             // Only older entries are updated; the new entry keeps only frequency spreading (matches C++).
             for (pos in 0 until FFT_OUTPUT_SIZE) {
                 var maxVal = spread[pos]
-                for (offset in intArrayOf(-1, -3, -6)) {
+                for (offset in TIME_SPREAD_OFFSETS) {
                     val idx = ((spreadPos + offset) % RING_BUF_SIZE + RING_BUF_SIZE) % RING_BUF_SIZE
                     val oldVal = spreadFfts[idx][pos]
                     if (oldVal > maxVal) maxVal = oldVal
                     spreadFfts[idx][pos] = maxVal
                 }
-                // Note: spread[pos] is intentionally NOT updated here.
-                // The new entry stored in spreadFfts should only have frequency spreading applied,
-                // not time spreading. This matches the original C++ vibra implementation.
             }
 
             spread.copyInto(spreadFfts[spreadPos])
@@ -160,15 +230,13 @@ internal object ShazamSignatureGenerator {
             val fftMinus46 = fftOutputs[(fftPos - 46 + RING_BUF_SIZE * 2) % RING_BUF_SIZE]
             val spreadMinus49 = spreadFfts[(spreadPos - 49 + RING_BUF_SIZE * 2) % RING_BUF_SIZE]
 
-            val otherOffsets = intArrayOf(-53, -45, 165, 172, 179, 186, 193, 200, 214, 221, 228, 235, 242, 249)
-
             for (binPos in 10 until FFT_OUTPUT_SIZE - 8) {
                 val fftVal = fftMinus46[binPos]
                 if (fftVal < 1.0 / 64.0 || fftVal < spreadMinus49[binPos]) continue
 
                 // Check 8 neighbors in spreadMinus49
                 var maxNeighborSpread49 = 0.0
-                for (neighborOffset in intArrayOf(-10, -7, -4, -3, 1, 2, 5, 8)) {
+                for (neighborOffset in NEIGHBOR_OFFSETS) {
                     val v = spreadMinus49[binPos + neighborOffset]
                     if (v > maxNeighborSpread49) maxNeighborSpread49 = v
                 }
@@ -176,7 +244,7 @@ internal object ShazamSignatureGenerator {
 
                 // Check 14 other spread FFT offsets
                 var maxNeighborOther = maxNeighborSpread49
-                for (otherOffset in otherOffsets) {
+                for (otherOffset in OTHER_OFFSETS) {
                     val spreadIdx = ((spreadPos + otherOffset) % RING_BUF_SIZE + RING_BUF_SIZE) % RING_BUF_SIZE
                     val v = spreadFfts[spreadIdx][binPos - 1]
                     if (v > maxNeighborOther) maxNeighborOther = v
@@ -216,7 +284,7 @@ internal object ShazamSignatureGenerator {
             }
         }
 
-        private fun encodeSignature(): String {
+        internal fun encodeSignature(): String {
             val contentsStream = ByteArrayOutputStream()
 
             // Write each frequency band's peaks in ascending band order (matches C++ std::map iteration)
@@ -311,76 +379,5 @@ internal object ShazamSignatureGenerator {
     private fun writeLittleEndian16(out: ByteArrayOutputStream, value: Int) {
         out.write(value and 0xFF)
         out.write((value ushr 8) and 0xFF)
-    }
-
-    /**
-     * Computes the real-input FFT of [windowed] (size 2048) using an iterative
-     * Cooley-Tukey radix-2 DIT algorithm.
-     *
-     * Returns FFT_OUTPUT_SIZE (1025) magnitude values:
-     *   magnitude[k] = max((re[k]² + im[k]²) / 2^17, 1e-10)
-     *
-     * This matches the FFTW3 r2c output format used in the C++ vibra library.
-     */
-    private fun computeRfft(windowed: DoubleArray): DoubleArray {
-        val n = windowed.size  // 2048
-        val re = windowed.copyOf()
-        val im = DoubleArray(n)
-
-        // Bit-reversal permutation
-        var j = 0
-        for (i in 1 until n) {
-            var bit = n ushr 1
-            while (j and bit != 0) {
-                j = j xor bit
-                bit = bit ushr 1
-            }
-            j = j xor bit
-            if (i < j) {
-                var tmp = re[i]; re[i] = re[j]; re[j] = tmp
-                tmp = im[i]; im[i] = im[j]; im[j] = tmp
-            }
-        }
-
-        // Cooley-Tukey butterfly stages (11 stages for n=2048)
-        var len = 2
-        while (len <= n) {
-            val halfLen = len ushr 1
-            val ang = -PI / halfLen       // = -2π / len
-            val wBaseRe = cos(ang)
-            val wBaseIm = kotlin.math.sin(ang)
-            var i = 0
-            while (i < n) {
-                var wRe = 1.0
-                var wIm = 0.0
-                for (k in 0 until halfLen) {
-                    val u = i + k
-                    val v = u + halfLen
-                    val evenRe = re[u]
-                    val evenIm = im[u]
-                    val oddRe = re[v] * wRe - im[v] * wIm
-                    val oddIm = re[v] * wIm + im[v] * wRe
-                    re[u] = evenRe + oddRe
-                    im[u] = evenIm + oddIm
-                    re[v] = evenRe - oddRe
-                    im[v] = evenIm - oddIm
-                    val newWRe = wRe * wBaseRe - wIm * wBaseIm
-                    wIm = wRe * wBaseIm + wIm * wBaseRe
-                    wRe = newWRe
-                }
-                i += len
-            }
-            len = len shl 1
-        }
-
-        // Extract magnitudes for bins 0..n/2 (FFT_OUTPUT_SIZE = 1025)
-        val scaleFactor = 1.0 / (1 shl 17)
-        val minVal = 1e-10
-        return DoubleArray(FFT_OUTPUT_SIZE) { idx ->
-            val r = re[idx]
-            val img = im[idx]
-            val mag = (r * r + img * img) * scaleFactor
-            if (mag < minVal) minVal else mag
-        }
     }
 }
