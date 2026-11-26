@@ -1769,7 +1769,7 @@ fun Lyrics(
                             else -> Alignment.CenterStart
                         }
 
-                        val lineTextColor = if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) Color.White else textColor
+                        val lineTextColor = textColor
 
                         val pairedMainIndex = remember(displayLines, index) {
                             (index - 1 downTo 0).firstOrNull { !displayLines[it].isBackground && !displayLines[it].isInstrumental } ?: -1
