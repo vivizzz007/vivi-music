@@ -119,7 +119,7 @@ buildTypes {
             signingConfigs.getByName("debug")
         isMinifyEnabled = true
         isShrinkResources = true
-        isCrunchPngs = false
+        isCrunchPngs = true
         isDebuggable = false
         proguardFiles(
             getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -235,7 +235,7 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.util)
-    implementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.tooling)
     implementation(libs.compose.animation)
     implementation(libs.compose.reorderable)
 

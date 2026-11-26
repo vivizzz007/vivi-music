@@ -48,13 +48,6 @@
 -keepattributes *Annotation*
 
 ##──────────────────────────────────────────────────────────────────────────────
-## 4. Kotlin Reflection
-##──────────────────────────────────────────────────────────────────────────────
--keep class kotlin.Metadata { *; }
--keep class kotlin.reflect.** { *; }
--dontwarn kotlin.reflect.**
-
-##──────────────────────────────────────────────────────────────────────────────
 ## 5. OkHttp / SSL / Logging
 ##──────────────────────────────────────────────────────────────────────────────
 -dontwarn javax.servlet.ServletContainerInitializer
@@ -128,13 +121,6 @@
 -keepclassmembers class com.music.vivi.recognition.VibraSignature {
     native <methods>;
 }
-
-##──────────────────────────────────────────────────────────────────────────────
-## 14. Ktor
-##──────────────────────────────────────────────────────────────────────────────
--keep class io.ktor.** { *; }
--keepclassmembers class io.ktor.** { *; }
--dontwarn io.ktor.**
 
 ##──────────────────────────────────────────────────────────────────────────────
 ## 15. Shazam Models
