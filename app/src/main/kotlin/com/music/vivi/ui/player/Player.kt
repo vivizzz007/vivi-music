@@ -120,6 +120,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -1453,7 +1454,6 @@ fun BottomSheetPlayer(
         },
     ) {
         val density = LocalDensity.current
-        var trackInfoHeightDp by remember { mutableStateOf(56.dp) }
         val trackInfoSpacerHeight = 20.dp
 
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
@@ -1470,11 +1470,6 @@ fun BottomSheetPlayer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = PlayerHorizontalPadding)
-                    .onSizeChanged { size ->
-                        if (size.height > 0) {
-                            trackInfoHeightDp = with(density) { size.height.toDp() }
-                        }
-                    }
                     .graphicsLayer { alpha = controlsHeaderAlpha },
             ) {
                 AnimatedContent(
@@ -2744,10 +2739,10 @@ fun BottomSheetPlayer(
         if (isOldPlayerPortrait) {
             val isCompact = !useNewPlayerDesign && (showInlineLyrics || showInlineQueue)
             Column(
-                verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .wrapContentHeight()
                     .padding(bottom = 8.dp)
             ) {
                 // Group 1: Track Info + Slider + Time
@@ -2768,7 +2763,13 @@ fun BottomSheetPlayer(
                     enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                     exit = shrinkVertically(shrinkTowards = Alignment.Top) + slideOutVertically(targetOffsetY = { it }) + fadeOut()
                 ) {
-                    oldPlaybackControlsContent()
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Spacer(Modifier.height(24.dp))
+                        oldPlaybackControlsContent()
+                    }
                 }
 
                 // Group 3: Volume + Bottom Actions (Bottom)
@@ -2781,6 +2782,7 @@ fun BottomSheetPlayer(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        Spacer(Modifier.height(24.dp))
                         volumeBarContent()
                         Spacer(Modifier.height(bottomActionSpacer))
                         oldBottomActionsContent()
@@ -3212,21 +3214,25 @@ fun BottomSheetPlayer(
                             label = "lyricsProgress"
                         ) { showing -> if (showing) 1f else 0f }
 
+                        var oldControlsHeightDp by remember { mutableStateOf(300.dp) }
+                        var expandedControlsHeightDp by remember { mutableStateOf(300.dp) }
+
                         val normalTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 8.dp
-                        val topSectionHeight = (maxHeight - normalTopPadding) * (1.25f / 2.25f)
+                        val artworkTopBound = normalTopPadding + 16.dp
+                        val controlsTop = (maxHeight - expandedControlsHeightDp).coerceAtLeast(artworkTopBound + 116.dp)
+                        val topSectionHeight = (controlsTop - artworkTopBound - 16.dp).coerceAtLeast(100.dp)
 
                         val expandedArtworkSize = minOf(
                             maxWidth - (PlayerHorizontalPadding * 2),
-                            topSectionHeight - 16.dp
+                            topSectionHeight
                         ).coerceAtLeast(100.dp)
                         val expandedX = (maxWidth - expandedArtworkSize) / 2f
-                        val expandedY = normalTopPadding + (topSectionHeight - expandedArtworkSize) / 2f
-                        val controlsTop = (expandedY + expandedArtworkSize + 34.dp).coerceAtMost(normalTopPadding + topSectionHeight)
-                        val bottomControlsHeight = (maxHeight - controlsTop).coerceAtLeast(120.dp)
+                        val expandedY = artworkTopBound + (topSectionHeight - expandedArtworkSize) * 0.6f
 
                         val collapsedArtworkSize = 56.dp
                         val collapsedX = PlayerHorizontalPadding
-                        val collapsedY = normalTopPadding
+                        // pill handle ends at statusBarTop + 4.dp + 20.dp; add 8.dp gap
+                        val collapsedY = normalTopPadding + 24.dp
 
                         val isAppleMusic = playerBackground == PlayerBackgroundStyle.APPLE_MUSIC
 
@@ -3274,9 +3280,7 @@ fun BottomSheetPlayer(
 
                         val lyricsTop = collapsedY + collapsedArtworkSize + 16.dp
                         val lyricsHeight = (maxHeight - lyricsTop - 16.dp).coerceAtLeast(120.dp)
-                        val compactControlsOffset = if (isCompactHeader) trackInfoHeightDp + trackInfoSpacerHeight else 0.dp
-                        val effectiveControlsTop = controlsTop + compactControlsOffset
-                        val effectiveControlsHeight = (maxHeight - effectiveControlsTop).coerceAtLeast(120.dp)
+                        val effectiveControlsTop = (maxHeight - oldControlsHeightDp).coerceAtLeast(normalTopPadding + 100.dp)
                         val controlsMaskThresholdY = effectiveControlsTop
 
                         val lyricsClipEnd =
@@ -3425,9 +3429,18 @@ fun BottomSheetPlayer(
                                 targetOffsetY = { it }
                             ) + fadeOut(tween(durationMillis = 220)),
                             modifier = Modifier
-                                .offset(y = if (isCompactHeader) effectiveControlsTop else controlsTop)
+                                .align(Alignment.BottomCenter)
                                 .fillMaxWidth()
-                                .height(if (isCompactHeader) effectiveControlsHeight else bottomControlsHeight)
+                                .wrapContentHeight()
+                                .onSizeChanged { size ->
+                                    if (size.height > 0) {
+                                        val measuredHeight = with(density) { size.height.toDp() }
+                                        oldControlsHeightDp = measuredHeight
+                                        if (!isCompactHeader && !isFullScreen) {
+                                            expandedControlsHeightDp = measuredHeight
+                                        }
+                                    }
+                                }
                                 .let {
                                     if (isCompactHeader) {
                                         it.pointerInput(Unit) {
@@ -3446,7 +3459,9 @@ fun BottomSheetPlayer(
                                 }
                         ) {
                             Column(
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
                             ) {
                                 mediaMetadata?.let {
                                     controlsContent(it)
