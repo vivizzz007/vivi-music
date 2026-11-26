@@ -470,7 +470,10 @@ fun BottomSheetPlayer(
     // Listen Together state (reactive)
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
+    val listenTogetherRoomState = listenTogetherManager?.roomState?.collectAsState()
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
+    val isInListenTogetherRoom = listenTogetherRoleState?.value != null && listenTogetherRoleState.value != RoomRole.NONE
+    val listenTogetherMemberCount = listenTogetherRoomState?.value?.users?.count { it.isConnected } ?: 0
     
     // Cast state - safely access castConnectionHandler to prevent crashes during service lifecycle changes
     val castHandler = remember(playerConnection) {
@@ -1455,6 +1458,66 @@ fun BottomSheetPlayer(
     ) {
         val density = LocalDensity.current
         val trackInfoSpacerHeight = 20.dp
+
+        val oldAudioOutputPill: @Composable (outputIconRes: Int, label: String, tintColor: Color) -> Unit = { outputIconRes, label, tintColor ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .height(34.dp)
+                    .clip(CircleShape)
+                    .background(TextBackgroundColor.copy(alpha = 0.12f))
+                    .animateContentSize()
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .width(48.dp)
+                        .fillMaxHeight()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { showAudioDeviceBottomSheet = true }
+                        )
+                ) {
+                    Icon(
+                        painter = painterResource(outputIconRes),
+                        contentDescription = label,
+                        tint = tintColor,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(TextBackgroundColor.copy(alpha = 0.20f))
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .widthIn(min = 52.dp)
+                        .fillMaxHeight()
+                        .background(TextBackgroundColor.copy(alpha = 0.14f))
+                        .padding(horizontal = 10.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.person),
+                        contentDescription = stringResource(R.string.listen_together),
+                        tint = textButtonColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = listenTogetherMemberCount.toString(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = textButtonColor
+                    )
+                }
+            }
+        }
 
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val trackInfoContent: @Composable () -> Unit = {
@@ -2657,37 +2720,47 @@ fun BottomSheetPlayer(
                                         stringResource(R.string.player_audio_this_phone)
                                     }
 
+                                    val outputIconRes = if (isConnected) {
+                                        when {
+                                            isSpeaker(nameToShow) -> R.drawable.speaker_applemusic
+                                            isBuds(nameToShow) -> R.drawable.headphones_apple
+                                            else -> R.drawable.headphones_apple
+                                        }
+                                    } else {
+                                        R.drawable.airplay_audio
+                                    }
+
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier
-                                            .widthIn(max = 160.dp)
+                                            .widthIn(max = 180.dp)
                                             .padding(horizontal = 4.dp)
-                                            .clickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null,
-                                                onClick = { showAudioDeviceBottomSheet = true }
+                                            .then(
+                                                if (!useNewPlayerDesign && isInListenTogetherRoom) {
+                                                    Modifier
+                                                } else {
+                                                    Modifier.clickable(
+                                                        interactionSource = remember { MutableInteractionSource() },
+                                                        indication = null,
+                                                        onClick = { showAudioDeviceBottomSheet = true }
+                                                    )
+                                                }
                                             )
                                     ) {
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier.size(32.dp)
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(
-                                                    if (isConnected) {
-                                                        when {
-                                                            isSpeaker(nameToShow) -> R.drawable.speaker_applemusic
-                                                            isBuds(nameToShow) -> R.drawable.headphones_apple
-                                                            else -> R.drawable.headphones_apple
-                                                        }
-                                                    } else {
-                                                        R.drawable.airplay_audio
-                                                    }
-                                                ),
-                                                contentDescription = label,
-                                                tint = tintColor,
-                                                modifier = Modifier.size(28.dp)
-                                            )
+                                        if (!useNewPlayerDesign && isInListenTogetherRoom) {
+                                            oldAudioOutputPill(outputIconRes, label, tintColor)
+                                        } else {
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier.size(32.dp)
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(outputIconRes),
+                                                    contentDescription = label,
+                                                    tint = tintColor,
+                                                    modifier = Modifier.size(28.dp)
+                                                )
+                                            }
                                         }
 
                                         Spacer(modifier = Modifier.height(2.dp))
@@ -2971,33 +3044,36 @@ fun BottomSheetPlayer(
                                 } else {
                                     stringResource(R.string.player_audio_this_phone)
                                 }
+                                val outputIconRes = if (isConnected) {
+                                    when {
+                                        isSpeaker(nameToShow) -> R.drawable.speaker_applemusic
+                                        isBuds(nameToShow) -> R.drawable.headphones_apple
+                                        else -> R.drawable.headphones_apple
+                                    }
+                                } else {
+                                    R.drawable.airplay_audio
+                                }
 
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null,
-                                            onClick = { showAudioDeviceBottomSheet = true }
+                                if (isInListenTogetherRoom) {
+                                    oldAudioOutputPill(outputIconRes, label, tintColor)
+                                } else {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null,
+                                                onClick = { showAudioDeviceBottomSheet = true }
+                                            )
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(outputIconRes),
+                                            contentDescription = label,
+                                            tint = tintColor,
+                                            modifier = Modifier.size(28.dp)
                                         )
-                                ) {
-                                    Icon(
-                                        painter = painterResource(
-                                            if (isConnected) {
-                                                when {
-                                                    isSpeaker(nameToShow) -> R.drawable.speaker_applemusic
-                                                    isBuds(nameToShow) -> R.drawable.headphones_apple
-                                                    else -> R.drawable.headphones_apple
-                                                }
-                                            } else {
-                                                R.drawable.airplay_audio
-                                            }
-                                        ),
-                                        contentDescription = label,
-                                        tint = tintColor,
-                                        modifier = Modifier.size(28.dp)
-                                    )
+                                    }
                                 }
 
                                 // Right: Queue
