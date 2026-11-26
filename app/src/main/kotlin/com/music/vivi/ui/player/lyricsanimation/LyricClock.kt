@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -300,10 +301,11 @@ fun rememberLyricClock(
     }
 
     if (!isPlaying) {
-        val currentPos = positionProvider()
-        LaunchedEffect(engine, currentPos) {
-            clock.longValue = currentPos
-            lastReportedPos = currentPos
+        LaunchedEffect(engine) {
+            snapshotFlow { positionProvider() }.collect { currentPos ->
+                clock.longValue = currentPos
+                lastReportedPos = currentPos
+            }
         }
     }
 

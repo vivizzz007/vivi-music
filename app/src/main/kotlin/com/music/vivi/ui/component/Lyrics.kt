@@ -33,6 +33,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -94,6 +95,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -1385,28 +1387,55 @@ fun Lyrics(
                 ) { value, _ -> since.floatValue = value }
             }
 
+            var placed by remember(currentSong?.id) { mutableStateOf(false) }
+
             LaunchedEffect(focusLine, showLyrics, isAutoScrollEnabled, isPlaying, displayLines, anchorRatio, isLyricsProviderShown) {
                 if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1 &&
                     isSynced && isAutoScrollEnabled && showLyrics && focusLine >= 0 && focusLine in displayLines.indices
                 ) {
-                    val targetIndex = if (isLyricsProviderShown) focusLine + 1 else focusLine
-                    var visible = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
-                    if (visible == null) {
-                        lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
-                        visible = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+                    snapshotFlow { lazyListState.layoutInfo }.first {
+                        it.viewportSize.height > 0 && it.beforeContentPadding > 0
                     }
-                    if (visible != null) {
-                        val span = scrollLead(displayLines, lyricClock.longValue).toInt()
-                        val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                        val anchor = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight * anchorRatio).toInt()
-                        val itemCenter = visible.offset + visible.size / 2
-                        val distance = (itemCenter - anchor).toFloat()
-                        if (kotlin.math.abs(distance) > 4) {
-                            run = ScrollRun(run.id + 1, distance, span)
-                            lazyListState.animateScrollBy(
-                                value = distance,
-                                animationSpec = tween(durationMillis = span, easing = LYRIC_EASING)
-                            )
+                    val targetIndex = if (isLyricsProviderShown) focusLine + 1 else focusLine
+                    val visible = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+                    val anchorDistance: (Int, Int) -> Float = { itemOffset, itemSize ->
+                        val info = lazyListState.layoutInfo
+                        val viewportHeight = info.viewportEndOffset - info.viewportStartOffset
+                        val anchor = info.viewportStartOffset + (viewportHeight * anchorRatio).toInt()
+                        (itemOffset + itemSize / 2 - anchor).toFloat()
+                    }
+                    when {
+                        !placed -> {
+                            lazyListState.scrollToItem(targetIndex, scrollOffset = 0)
+                            lazyListState.layoutInfo.visibleItemsInfo
+                                .firstOrNull { it.index == targetIndex }
+                                ?.let { lazyListState.scrollBy(anchorDistance(it.offset, it.size)) }
+                            placed = true
+                        }
+                        visible != null -> {
+                            val span = scrollLead(displayLines, lyricClock.longValue).toInt()
+                            val distance = anchorDistance(visible.offset, visible.size)
+                            if (kotlin.math.abs(distance) > 4) {
+                                run = ScrollRun(run.id + 1, distance, span)
+                                lazyListState.animateScrollBy(
+                                    value = distance,
+                                    animationSpec = tween(durationMillis = span, easing = LYRIC_EASING)
+                                )
+                            }
+                        }
+                        else -> {
+                            lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
+                            lazyListState.layoutInfo.visibleItemsInfo
+                                .firstOrNull { it.index == targetIndex }
+                                ?.let {
+                                    val distance = anchorDistance(it.offset, it.size)
+                                    if (kotlin.math.abs(distance) > 4) {
+                                        lazyListState.animateScrollBy(
+                                            value = distance,
+                                            animationSpec = tween(durationMillis = LYRIC_SETTLE_MS, easing = LYRIC_EASING)
+                                        )
+                                    }
+                                }
                         }
                     }
                 }
@@ -1538,8 +1567,7 @@ fun Lyrics(
                             }
                         }
 
-                        val isLineAnimating = lyricLine.isWordSynced && (lyricClock.longValue in lyricLine.animatesFromMs..lyricLine.animatesUntilMs)
-                        val isActive = isSynced && (index in activeRows || isLineAnimating)
+                        val isActive = isSynced && index in activeRows
                         val offset = if (scrollLine < 0) 0 else index - scrollLine
                         val distanceFromCurrent = kotlin.math.abs(offset)
                         val sung = offset < 0
@@ -1575,14 +1603,16 @@ fun Lyrics(
 
                         val behind = if (run.delta >= 0f) index - focusLine else focusLine - index
                         val staggerDelay = behind.coerceIn(0, STAGGER_STEPS) * STAGGER_FRACTION * run.durationMs
-                        val rowTranslationY = if (staggerDelay <= 0f) {
-                            0f
-                        } else {
-                            val elapsed = since.floatValue
-                            run.delta * (
-                                LYRIC_EASING.transform((elapsed / run.durationMs).coerceIn(0f, 1f)) -
-                                LYRIC_EASING.transform(((elapsed - staggerDelay) / run.durationMs).coerceIn(0f, 1f))
-                            )
+                        val staggerModifier = Modifier.graphicsLayer {
+                            translationY = if (staggerDelay <= 0f) {
+                                0f
+                            } else {
+                                val elapsed = since.floatValue
+                                run.delta * (
+                                    LYRIC_EASING.transform((elapsed / run.durationMs).coerceIn(0f, 1f)) -
+                                    LYRIC_EASING.transform(((elapsed - staggerDelay) / run.durationMs).coerceIn(0f, 1f))
+                                )
+                            }
                         }
 
                         val interaction = remember { MutableInteractionSource() }
@@ -1638,9 +1668,7 @@ fun Lyrics(
                                 blurRadius = animatedBlur,
                                 glowRoom = GLOW_ROOM,
                                 alignment = agentAlignment,
-                                modifier = Modifier.graphicsLayer {
-                                    this.translationY = rowTranslationY
-                                },
+                                modifier = staggerModifier,
                                 onSeek = {
                                     if (isSynced && changeLyrics && !isGuest) {
                                         val lyricsOffsetVal = currentSong?.song?.lyricsOffset ?: 0
@@ -1747,14 +1775,16 @@ fun Lyrics(
                             (index - 1 downTo 0).firstOrNull { !displayLines[it].isBackground && !displayLines[it].isInstrumental } ?: -1
                         }
                         val bgVisible = !item.isBackground || isSelectionModeActive ||
-                            (index in activeRows || index == focusLine || isLineAnimating) ||
+                            (index in activeRows || index == focusLine) ||
                             (pairedMainIndex != -1 && (pairedMainIndex in activeRows || pairedMainIndex == focusLine))
+                        val closeDelayMs = if (item.isBackground && index < focusLine) run.durationMs else 0
 
                         AnimatedVisibility(
                             visible = bgVisible,
                             enter = fadeIn(tween(280)) + expandVertically(tween(320, easing = LYRIC_EASING)),
-                            exit = fadeOut(tween(280)) + shrinkVertically(tween(320, easing = LYRIC_EASING)),
-                            modifier = Modifier.graphicsLayer { translationY = rowTranslationY }
+                            exit = fadeOut(tween(280, delayMillis = closeDelayMs)) +
+                                shrinkVertically(tween(320, delayMillis = closeDelayMs, easing = LYRIC_EASING)),
+                            modifier = staggerModifier
                         ) {
                             Column(
                                 modifier = itemModifier,
@@ -2960,8 +2990,8 @@ private const val PRESSED_SCALE = 0.96f
 private const val GLOW_ALPHA = 0.62f
 private val GLOW_ROOM = 10.dp
 
-private const val STAGGER_STEPS = 4
-private const val STAGGER_FRACTION = 0.08f
+private const val STAGGER_STEPS = 3
+private const val STAGGER_FRACTION = 0.06f
 
 private class ScrollRun(val id: Int, val delta: Float, val durationMs: Int) {
     val spanMs: Float get() = durationMs * (1f + STAGGER_FRACTION * STAGGER_STEPS)
@@ -2988,35 +3018,48 @@ private const val SCROLL_LEAD_MIN_MS = 350L
 private const val SCROLL_LEAD_MAX_MS = 500L
 
 private fun activeLyricRows(lines: List<LyricsEntry>, positionMs: Long): List<Int> {
-    val latest = lines.indexOfLast { it.time <= positionMs }
-    if (latest < 0) return emptyList()
+    val rawLatest = lines.indexOfLast { it.time <= positionMs }
+    if (rawLatest < 0) return emptyList()
+    // Keep the current main line anchored while its backing vocals play so
+    // line-synced main lyrics don't drop out of activeRows or lose focus.
+    val latestMain = lines.indexOfLast { it.time <= positionMs && !it.isBackground }
+        .takeIf { it >= 0 } ?: rawLatest
     // Scan only a small window behind the current line. Scanning from 0 is O(N²) per
     // frame and can mark multiple past lines active simultaneously (visible as the
     // wrong line being highlighted). Two lines of lookback covers duet backing vocals.
-    val scanFrom = (latest - 2).coerceAtLeast(0)
-    return (scanFrom..latest).filter { index ->
+    val scanFrom = (latestMain - 2).coerceAtLeast(0)
+    return (scanFrom..rawLatest).filter { index ->
         val line = lines[index]
         val endMs = if (!line.words.isNullOrEmpty()) {
             (line.words.last().endTime * 1000).toLong()
         } else {
             lines.getOrNull(index + 1)?.time ?: (line.time + 4000L)
         }
-        index == latest || (!line.isInstrumental && line.time <= positionMs && positionMs < endMs)
+        index == latestMain || (!line.isInstrumental && line.time <= positionMs && positionMs < endMs)
     }
 }
 
 private fun focusRowFor(lines: List<LyricsEntry>, active: List<Int>): Int {
     val latest = active.lastOrNull() ?: return -1
     val latestTime = lines.getOrNull(latest)?.time ?: return latest
-    // Advance to the newly started line even if an earlier line's endMs overlaps,
-    // while keeping simultaneous duet lines anchored to the first line of that timestamp.
+    // Prefer the main line over a simultaneous/trailing backing line so the
+    // lead vocal stays anchored instead of being pushed toward the top bar.
+    val sameTimeMain = active.firstOrNull {
+        val entry = lines.getOrNull(it)
+        entry != null && entry.time == latestTime && !entry.isBackground
+    }
+    if (sameTimeMain != null) return sameTimeMain
+    val latestMain = active.lastOrNull { lines.getOrNull(it)?.isBackground == false }
+    if (latestMain != null) return latestMain
     return active.firstOrNull { lines.getOrNull(it)?.time == latestTime } ?: latest
 }
 
 private fun scrollLead(lines: List<LyricsEntry>, positionMs: Long): Long {
-    val current = lines.indexOfLast { it.time <= positionMs }
+    val current = lines.indexOfLast { it.time <= positionMs && !it.isBackground }
+        .takeIf { it >= 0 } ?: lines.indexOfLast { it.time <= positionMs }
     if (current < 0) return SCROLL_LEAD_MIN_MS
-    val next = lines.getOrNull(current + 1) ?: return SCROLL_LEAD_MIN_MS
+    val next = (current + 1 until lines.size).firstOrNull { !lines[it].isBackground }?.let { lines[it] }
+        ?: return SCROLL_LEAD_MIN_MS
     val currentEnd = if (!lines[current].words.isNullOrEmpty()) {
         (lines[current].words!!.last().endTime * 1000).toLong()
     } else {
