@@ -2855,7 +2855,7 @@ fun BottomSheetPlayer(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(32.dp))
                         volumeBarContent()
                         Spacer(Modifier.height(bottomActionSpacer))
                         oldBottomActionsContent()
