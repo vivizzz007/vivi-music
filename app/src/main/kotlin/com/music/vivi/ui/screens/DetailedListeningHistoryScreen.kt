@@ -29,7 +29,7 @@ import com.music.vivi.utils.joinByBullet
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.viewmodels.DetailedListeningHistoryViewModel
 import java.time.Instant
-import java.time.ZoneOffset
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +48,7 @@ fun DetailedListeningHistoryScreen(
     val uniqueAlbumsCount by viewModel.uniqueAlbumsCount.collectAsState()
 
     val dateStr = Instant.ofEpochMilli(viewModel.startTimestamp)
-        .atZone(ZoneOffset.UTC)
+        .atZone(ZoneId.systemDefault())
         .format(DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy"))
 
     Scaffold(
