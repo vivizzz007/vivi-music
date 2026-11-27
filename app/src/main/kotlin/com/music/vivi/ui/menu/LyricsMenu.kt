@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -260,7 +261,13 @@ fun LyricsMenu(
         }
 
         ListDialog(
-            onDismiss = { showSearchResultDialog = false },
+            onDismiss = {
+                showSearchResultDialog = false
+                viewModel.cancelSearch()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 160.dp, max = 480.dp),
         ) {
             itemsIndexed(results) { index, result ->
                 Row(
@@ -340,7 +347,9 @@ fun LyricsMenu(
                 item {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 24.dp),
                     ) {
                         CircularWavyProgressIndicator()
                     }
@@ -352,9 +361,9 @@ fun LyricsMenu(
                     Text(
                         text = context.getString(R.string.lyrics_not_found),
                         textAlign = TextAlign.Center,
-                        modifier =
-                        Modifier
-                            .fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 24.dp),
                     )
                 }
             }

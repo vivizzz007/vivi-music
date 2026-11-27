@@ -7,11 +7,11 @@ package com.music.vivi.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,6 +52,7 @@ import com.music.vivi.ui.component.*
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.safeOpenUri
 import com.music.vivi.utils.SyncStatus
+import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AccountSettingsViewModel
 import com.music.vivi.viewmodels.HomeViewModel
@@ -558,58 +559,71 @@ fun AccountSettingsScreen(
             DefaultDialog(
                 onDismiss = { showLogoutDialog = false },
                 title = { Text(stringResource(R.string.logout_dialog_title)) },
-                buttons = {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) {
-                        // Cancel button
-                        ToggleButton(
-                            checked = false,
-                            onCheckedChange = { showLogoutDialog = false },
-                            modifier = Modifier.weight(1f),
-                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        ) {
-                            Text(stringResource(android.R.string.cancel))
-                        }
-
-                        // Clear Data button
-                        ToggleButton(
-                            checked = false,
-                            onCheckedChange = {
-                                accountSettingsViewModel.logoutAndClearSyncedContent(context, onInnerTubeCookieChange)
-                                showLogoutDialog = false
-                            },
-                            modifier = Modifier.weight(1f),
-                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
-                            colors = ToggleButtonDefaults.colors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Text(stringResource(R.string.logout_clear_data))
-                        }
-
-                        // Keep Data button (Primary OK)
-                        ToggleButton(
-                            checked = true,
-                            onCheckedChange = {
-                                accountSettingsViewModel.logoutKeepData(context, onInnerTubeCookieChange)
-                                showLogoutDialog = false
-                                navController.navigateUp()
-                            },
-                            modifier = Modifier.weight(1f),
-                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        ) {
-                            Text(stringResource(R.string.logout_keep_data))
-                        }
-                    }
-                }
+                horizontalAlignment = Alignment.Start,
             ) {
                 Text(
                     text = stringResource(R.string.logout_dialog_message),
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
                 )
+
+                Spacer(Modifier.height(16.dp))
+
+                val isDark = isSystemInDarkTheme()
+                val actions = listOf(
+                    Triple(
+                        stringResource(R.string.logout_keep_data),
+                        MaterialTheme.colorScheme.primary
+                    ) {
+                        accountSettingsViewModel.logoutKeepData(context, onInnerTubeCookieChange)
+                        showLogoutDialog = false
+                        navController.navigateUp()
+                    },
+                    Triple(
+                        stringResource(R.string.logout_clear_data),
+                        MaterialTheme.colorScheme.error
+                    ) {
+                        accountSettingsViewModel.logoutAndClearSyncedContent(context, onInnerTubeCookieChange)
+                        showLogoutDialog = false
+                    },
+                    Triple(
+                        stringResource(android.R.string.cancel),
+                        MaterialTheme.colorScheme.primary
+                    ) {
+                        showLogoutDialog = false
+                    }
+                )
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    actions.forEachIndexed { index, (label, textColor, action) ->
+                        val shape = listItemShape(index, actions.size)
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 1.dp)
+                                .clip(shape)
+                                .clickable { action() },
+                            shape = shape,
+                            color = if (isDark) {
+                                textColor.copy(alpha = 0.15f)
+                            } else {
+                                textColor.copy(alpha = 0.08f)
+                            }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = textColor,
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
