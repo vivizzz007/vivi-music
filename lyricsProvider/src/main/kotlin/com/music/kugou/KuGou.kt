@@ -273,9 +273,15 @@ object KuGou {
             val centiseconds = (lineStartMs % 1000) / 10
             val lineTag = String.format(Locale.US, "[%02d:%02d.%02d]%s", minutes, seconds, centiseconds, lineText)
 
-            val wordsData = wordMatches.map { wMatch ->
+            val wordsData = wordMatches.mapIndexed { idx, wMatch ->
                 val offsetMs = wMatch.groupValues[1].toLongOrNull() ?: 0L
-                val durMs = wMatch.groupValues[2].toLongOrNull() ?: 0L
+                val rawDurMs = wMatch.groupValues[2].toLongOrNull() ?: 0L
+                val nextOffsetMs = wordMatches.getOrNull(idx + 1)?.groupValues?.get(1)?.toLongOrNull()
+                val durMs = if (nextOffsetMs != null && nextOffsetMs > offsetMs) {
+                    minOf(rawDurMs, nextOffsetMs - offsetMs)
+                } else {
+                    rawDurMs
+                }
                 val rawWord = wMatch.groupValues[3]
                 val safeWord = rawWord.replace("|", " ").replace(":", " ")
                 val startSec = (lineStartMs + offsetMs) / 1000.0

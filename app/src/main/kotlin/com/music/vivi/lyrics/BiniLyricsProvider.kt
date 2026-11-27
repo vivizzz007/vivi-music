@@ -146,98 +146,150 @@ object BiniLyricsProvider : LyricsProvider {
     // ──────────────────────────────────────────────────────────────────────
 
     private val pRegex = """<p([^>]*)>(.*?)</p>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+    private val tokenRegex = """(<[^>]+>)|([^<]+)""".toRegex()
     private val beginRegex = """begin=["']([\w:.]+)["']""".toRegex()
     private val endRegex = """end=["']([\w:.]+)["']""".toRegex()
+    private val roleRegex = """(?:ttm:role|role)=["']([^"']+)["']""".toRegex()
     private val agentRegex = """(?:ttm:agent|agent)=["']([^"']+)["']""".toRegex()
-    private val spanRegex = """<span\s+([^>]*?)>(.*?)</span>""".toRegex(RegexOption.DOT_MATCHES_ALL)
 
     /**
      * Parse Apple Music TTML format and convert to standard LRC or RichSync LRC.
      * Visible for testing.
      */
-    internal fun ttmlToLrc(ttml: String): String {
+    internal fun ttmlToLrc(rawTtml: String): String {
+        val ttml = rawTtml.replace("\uFEFF", "")
         val lrcBuilder = java.lang.StringBuilder()
 
         for (pMatch in pRegex.findAll(ttml)) {
             val pAttrs = pMatch.groupValues[1]
             val pBeginStr = beginRegex.find(pAttrs)?.groupValues?.get(1) ?: continue
-            val pBeginSec = parseTtmlTimeToSeconds(pBeginStr) ?: continue
-            val pEndStr = endRegex.find(pAttrs)?.groupValues?.get(1)
-            val pEndSec = pEndStr?.let { parseTtmlTimeToSeconds(it) }
+            val lineStartMs = parseTtmlTimeToMs(pBeginStr) ?: continue
+            val lineEndMs = parseTtmlTimeToMs(endRegex.find(pAttrs)?.groupValues?.get(1))
             val agent = agentRegex.find(pAttrs)?.groupValues?.get(1)
             val innerHtml = pMatch.groupValues[2]
 
-            val mainTime = formatLrcTime(pBeginSec)
-            lrcBuilder.append("[$mainTime]")
-            if (agent != null) {
-                lrcBuilder.append("{agent:$agent}")
+            val fgPieces = mutableListOf<Pair<Long?, String>>()
+            val bgPieces = mutableListOf<Pair<Long?, String>>()
+            var currentSpanMs: Long? = null
+            var maxFgEndMs = -1L
+            var maxBgEndMs = -1L
+
+            val bgStack = mutableListOf<Boolean>()
+            val skipStack = mutableListOf<Boolean>()
+            val timeStack = mutableListOf<Long?>()
+
+            for (tokenMatch in tokenRegex.findAll(innerHtml)) {
+                val tag = tokenMatch.groupValues[1]
+                val text = tokenMatch.groupValues[2]
+
+                if (tag.isNotEmpty()) {
+                    if (tag.startsWith("</")) {
+                        if (bgStack.isNotEmpty()) bgStack.removeLast()
+                        if (skipStack.isNotEmpty()) skipStack.removeLast()
+                        if (timeStack.isNotEmpty()) {
+                            timeStack.removeLast()
+                            currentSpanMs = timeStack.lastOrNull()
+                        }
+                    } else if (tag.startsWith("<span") || tag.startsWith("<s ")) {
+                        val role = roleRegex.find(tag)?.groupValues?.get(1)
+                        val isSkip = (role == "x-translation" || role == "x-roman") || (skipStack.lastOrNull() ?: false)
+                        val isBg = (role == "x-bg") || (bgStack.lastOrNull() ?: false)
+
+                        bgStack.add(isBg)
+                        skipStack.add(isSkip)
+
+                        val tEndMs = parseTtmlTimeToMs(endRegex.find(tag)?.groupValues?.get(1))
+                        if (!isSkip && tEndMs != null) {
+                            if (isBg) maxBgEndMs = maxOf(maxBgEndMs, tEndMs)
+                            else maxFgEndMs = maxOf(maxFgEndMs, tEndMs)
+                        }
+
+                        val tMs = parseTtmlTimeToMs(beginRegex.find(tag)?.groupValues?.get(1))
+                        if (tMs != null) {
+                            timeStack.add(tMs)
+                            currentSpanMs = tMs
+                        } else {
+                            timeStack.add(currentSpanMs)
+                        }
+                    }
+                } else if (text.isNotEmpty()) {
+                    if (skipStack.lastOrNull() == true) continue
+                    val cleanText = text.replace(Regex("""\s+"""), " ")
+                    if (cleanText.isNotEmpty()) {
+                        val isBackground = bgStack.lastOrNull() == true
+                        if (isBackground) bgPieces.add(currentSpanMs to cleanText)
+                        else fgPieces.add(currentSpanMs to cleanText)
+                    }
+                }
             }
 
-            val spanMatches = spanRegex.findAll(innerHtml).toList()
-            if (spanMatches.isNotEmpty()) {
-                var lastSpanEndSec: Float? = null
-                for (spanMatch in spanMatches) {
-                    val spanAttrs = spanMatch.groupValues[1]
-                    val spanBeginStr = beginRegex.find(spanAttrs)?.groupValues?.get(1) ?: continue
-                    val spanBeginSec = parseTtmlTimeToSeconds(spanBeginStr) ?: continue
-                    val spanEndStr = endRegex.find(spanAttrs)?.groupValues?.get(1)
-                    val spanEndSec = spanEndStr?.let { parseTtmlTimeToSeconds(it) }
-                    if (spanEndSec != null) {
-                        lastSpanEndSec = spanEndSec
+            fun appendLine(pieces: List<Pair<Long?, String>>, isBg: Boolean, endMs: Long?) {
+                if (pieces.isEmpty()) return
+                val lineSb = java.lang.StringBuilder()
+                lineSb.append("[${formatLrcTimeMs(lineStartMs)}]")
+                if (isBg) lineSb.append("{bg}")
+                if (agent != null) lineSb.append("{agent:$agent}")
+
+                var lastMs = -1L
+                var hasSpanTags = false
+                for ((ms, text) in pieces) {
+                    if (text.isBlank()) {
+                        lineSb.append(text)
+                        continue
                     }
-                    // Clean HTML entities or nested tags from the word just in case
-                    val word = spanMatch.groupValues[2].replace(Regex("<[^>]*>"), "").trim()
-                    if (word.isNotEmpty()) {
-                        val spanTime = formatLrcTime(spanBeginSec)
-                        lrcBuilder.append("<$spanTime> $word ")
+                    if (ms != null && ms != lastMs) {
+                        lineSb.append("<${formatLrcTimeMs(ms)}> ")
+                        lastMs = ms
+                        hasSpanTags = true
                     }
+                    lineSb.append(text.trimStart())
                 }
-                val finalEndSec = lastSpanEndSec ?: pEndSec
-                if (finalEndSec != null && finalEndSec > pBeginSec) {
-                    val endTime = formatLrcTime(finalEndSec)
-                    lrcBuilder.append("<$endTime>")
+                if (hasSpanTags && endMs != null && endMs > lineStartMs && endMs > lastMs) {
+                    lineSb.append(" <${formatLrcTimeMs(endMs)}>")
                 }
-            } else {
-                // Unsynced spans or just plain text inside <p>
-                val plainText = innerHtml.replace(Regex("<[^>]*>"), "").trim()
-                lrcBuilder.append(plainText)
+                val formatted = lineSb.toString().trimEnd()
+                if (formatted.isNotEmpty()) {
+                    lrcBuilder.append(formatted).append("\n")
+                }
             }
-            lrcBuilder.append("\n")
+
+            appendLine(fgPieces, false, if (maxFgEndMs > 0L) maxFgEndMs else lineEndMs)
+            appendLine(bgPieces, true, if (maxBgEndMs > 0L) maxBgEndMs else lineEndMs)
         }
 
         return lrcBuilder.toString().trimEnd()
     }
 
-    private fun formatLrcTime(sec: Float): String {
-        val mm = (sec / 60).toInt()
-        val ss = sec % 60
-        // Result format: MM:SS.xxx where x is fractional padded
-        val ssStr = String.format(Locale.US, "%05.2f", ss) // "09.52", "45.10" etc
-        // ViviMusic regex for Line Rich Sync expects \d{2,3} for ms block: [MM:SS.xx] or [MM:SS.xxx]
-        return String.format(Locale.US, "%02d:%s", mm, ssStr)
+    private fun formatLrcTimeMs(ms: Long): String {
+        val safeMs = ms.coerceAtLeast(0L)
+        val mm = safeMs / 60000
+        val ss = (safeMs % 60000) / 1000
+        val cs = (safeMs % 1000) / 10
+        return String.format(Locale.US, "%02d:%02d.%02d", mm, ss, cs)
     }
 
-    private fun parseTtmlTimeToSeconds(timeStr: String): Float? {
-        val cleanStr = timeStr.replace(Regex("[a-zA-Z]+$"), "")
-        val isMs = timeStr.endsWith("ms", ignoreCase = true)
+    private fun parseTtmlTimeToMs(timeStr: String?): Long? {
+        val raw = timeStr?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val isMs = raw.endsWith("ms", ignoreCase = true)
+        val cleanStr = raw.replace(Regex("[a-zA-Z]+$"), "")
         val parts = cleanStr.split(":")
 
         val seconds = when (parts.size) {
             3 -> {
-                val h = parts[0].toFloatOrNull() ?: return null
-                val m = parts[1].toFloatOrNull() ?: return null
-                val s = parts[2].toFloatOrNull() ?: return null
-                h * 3600f + m * 60f + s
+                val h = parts[0].toDoubleOrNull() ?: return null
+                val m = parts[1].toDoubleOrNull() ?: return null
+                val s = parts[2].toDoubleOrNull() ?: return null
+                h * 3600.0 + m * 60.0 + s
             }
             2 -> {
-                val m = parts[0].toFloatOrNull() ?: return null
-                val s = parts[1].toFloatOrNull() ?: return null
-                m * 60f + s
+                val m = parts[0].toDoubleOrNull() ?: return null
+                val s = parts[1].toDoubleOrNull() ?: return null
+                m * 60.0 + s
             }
             else -> {
-                cleanStr.toFloatOrNull() ?: return null
+                cleanStr.toDoubleOrNull() ?: return null
             }
         }
-        return if (isMs) seconds / 1000f else seconds
+        return if (isMs) seconds.toLong() else (seconds * 1000.0).toLong()
     }
 }

@@ -12,8 +12,8 @@ import java.util.Locale
 
 @Suppress("RegExpRedundantEscape")
 object LyricsUtils {
-    val LINE_REGEX = "((\\[\\d\\d:\\d\\d\\.\\d{2,3}\\] ?)+)(.+)".toRegex()
-    val TIME_REGEX = "\\[(\\d\\d):(\\d\\d)\\.(\\d{2,3})\\]".toRegex()
+    val LINE_REGEX = "((\\[\\d{1,2}:\\d\\d\\.\\d{2,3}\\] ?)+)(.+)".toRegex()
+    val TIME_REGEX = "\\[(\\d{1,2}):(\\d\\d)\\.(\\d{2,3})\\]".toRegex()
     
     // Regex for rich sync format: [MM:SS.mm]<MM:SS.mm> word <MM:SS.mm> word ...
     private val RICH_SYNC_LINE_REGEX = "\\[(\\d{1,2}):(\\d{2})\\.(\\d{2,3})\\](.+)".toRegex()
@@ -534,17 +534,17 @@ object LyricsUtils {
      * Get the start time of the next line for calculating the last word's end time
      */
     private fun getNextLineStartTime(currentIndex: Int, allLines: List<String>): Double? {
-        if (currentIndex + 1 >= allLines.size) return null
-        
-        val nextLine = allLines[currentIndex + 1].trim()
-        val matchResult = RICH_SYNC_LINE_REGEX.matchEntire(nextLine) ?: return null
-        
-        val minutes = matchResult.groupValues[1].toLongOrNull() ?: return null
-        val seconds = matchResult.groupValues[2].toLongOrNull() ?: return null
-        val fraction = matchResult.groupValues[3].toLongOrNull() ?: 0L
-        
-        val fractionPart = if (matchResult.groupValues[3].length == 3) fraction / 1000.0 else fraction / 100.0
-        return minutes * 60.0 + seconds + fractionPart
+        for (idx in (currentIndex + 1) until allLines.size) {
+            val nextLine = allLines[idx].trim()
+            if (nextLine.contains("{bg}")) continue
+            val matchResult = RICH_SYNC_LINE_REGEX.matchEntire(nextLine) ?: continue
+            val minutes = matchResult.groupValues[1].toLongOrNull() ?: continue
+            val seconds = matchResult.groupValues[2].toLongOrNull() ?: continue
+            val fraction = matchResult.groupValues[3].toLongOrNull() ?: 0L
+            val fractionPart = if (matchResult.groupValues[3].length == 3) fraction / 1000.0 else fraction / 100.0
+            return minutes * 60.0 + seconds + fractionPart
+        }
+        return null
     }
     
     /**

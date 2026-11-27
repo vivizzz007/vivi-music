@@ -155,6 +155,7 @@ import com.music.vivi.ui.player.lyricsanimation.GROW_HEADROOM
 import com.music.vivi.ui.player.lyricsanimation.GrowingWord
 import com.music.vivi.ui.player.lyricsanimation.DUET_LANE
 import com.music.vivi.ui.player.lyricsanimation.LyricAlignment
+import com.music.vivi.ui.player.lyricsanimation.MIN_GAP_MS
 import com.music.vivi.ui.player.lyricsanimation.computeLineAlignments
 import com.music.vivi.ui.player.lyricsanimation.PHASE_AFTER
 import com.music.vivi.ui.player.lyricsanimation.PHASE_BEFORE
@@ -1375,7 +1376,7 @@ fun Lyrics(
 
             val displayLines = remember(lines, lyricsAnimationStyle, isSynced) {
                 if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1 && isSynced) {
-                    lines.withInstrumentalGaps()
+                    lines.filterNot { it === LyricsEntry.HEAD_LYRICS_ENTRY }.withInstrumentalGaps()
                 } else {
                     lines
                 }
@@ -1690,30 +1691,32 @@ fun Lyrics(
 
                         if (item.isInstrumental) {
                             val until = displayLines.getOrNull(index + 1)?.time ?: (item.time + 4000L)
-                            InstrumentalCookieIndicator(
-                                timeMs = item.time,
-                                untilMs = until,
-                                isActive = isActive,
-                                clock = lyricClock,
-                                color = expressiveAccent,
-                                lineAlpha = animatedAlpha,
-                                blurRadius = animatedBlur,
-                                glowRoom = GLOW_ROOM,
-                                alignment = agentAlignment,
-                                modifier = staggerModifier,
-                                onSeek = {
-                                    if (isSynced && changeLyrics && !isGuest) {
-                                        val lyricsOffsetVal = currentSong?.song?.lyricsOffset ?: 0
-                                        playerConnection.seekTo((item.time - lyricsOffsetVal).coerceAtLeast(0))
-                                        isAutoScrollEnabled = true
-                                        scope.launch {
-                                            val targetIndex = if (isLyricsProviderShown) index + 1 else index
-                                            lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
+                            if (until - item.time >= MIN_GAP_MS) {
+                                InstrumentalCookieIndicator(
+                                    timeMs = item.time,
+                                    untilMs = until,
+                                    isActive = isActive,
+                                    clock = lyricClock,
+                                    color = expressiveAccent,
+                                    lineAlpha = animatedAlpha,
+                                    blurRadius = animatedBlur,
+                                    glowRoom = GLOW_ROOM,
+                                    alignment = agentAlignment,
+                                    modifier = staggerModifier,
+                                    onSeek = {
+                                        if (isSynced && changeLyrics && !isGuest) {
+                                            val lyricsOffsetVal = currentSong?.song?.lyricsOffset ?: 0
+                                            playerConnection.seekTo((item.time - lyricsOffsetVal).coerceAtLeast(0))
+                                            isAutoScrollEnabled = true
+                                            scope.launch {
+                                                val targetIndex = if (isLyricsProviderShown) index + 1 else index
+                                                lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
+                                            }
+                                            lastPreviewTime = 0L
                                         }
-                                        lastPreviewTime = 0L
                                     }
-                                }
-                            )
+                                )
+                            }
                             return@itemsIndexed
                         }
 
@@ -1875,7 +1878,7 @@ fun Lyrics(
                                     val position = drawnAt()
                                     when {
                                         position >= lyricLine.endMs -> drawContent()
-                                        position <= lyricLine.timeMs -> Unit
+                                        position < lyricLine.animatesFromMs -> Unit
                                         else -> layout?.let {
                                             sweepTo(it, lyricLine.revealedChars(position), lyricLine.sweepSpans, isActive)
                                         }
@@ -2014,7 +2017,7 @@ fun Lyrics(
                             } else {
                                 // ── Non-word-synced line (Apple Music whole sentence highlight) ──────
                                 val sentenceAlpha by animateFloatAsState(
-                                    targetValue = if (isActive) 1f else UNSUNG_ALPHA,
+                                    targetValue = if (!isSynced || isActive) 1f else UNSUNG_ALPHA,
                                     animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
                                     label = "sentenceAlpha"
                                 )
@@ -3108,7 +3111,7 @@ private fun scrollLead(lines: List<LyricsEntry>, positionMs: Long): Long {
     val currentEnd = if (!lines[current].words.isNullOrEmpty()) {
         (lines[current].words!!.last().endTime * 1000).toLong()
     } else {
-        lines[current].time + 3000L
+        minOf(lines[current].time + 3000L, next.time)
     }
     val gap = next.time - currentEnd
     return gap.coerceIn(SCROLL_LEAD_MIN_MS, SCROLL_LEAD_MAX_MS)

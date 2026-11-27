@@ -309,20 +309,7 @@ fun MetroLyricsLine(
                     )
                 }
             } else {
-                remember(mainText, entry.time) {
-                    val words = mainText.split(Regex("\\s+")).filter { it.isNotBlank() }
-                    val wordDurationSec = 0.18
-                    val wordStaggerSec = 0.03
-                    val startTimeSec = entry.time / 1000.0
-                    words.mapIndexed { idx, wordText ->
-                        MetroWordTimestamp(
-                            text = wordText,
-                            startTime = startTimeSec + (idx * wordStaggerSec),
-                            endTime = startTimeSec + (idx * wordStaggerSec) + wordDurationSec,
-                            hasTrailingSpace = idx < words.size - 1
-                        )
-                    }
-                }
+                emptyList()
             }
 
             val baseLineColor = expressiveAccent.copy(alpha = if (entry.isBackground) focusedAlpha else animatedAlpha)

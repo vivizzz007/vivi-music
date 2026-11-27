@@ -189,6 +189,7 @@ object LrcRedLyricsProvider : LyricsProvider {
         val pRegex = Regex("""<p([^>]*)>(.*?)</p>""", RegexOption.DOT_MATCHES_ALL)
         val tokenRegex = Regex("""(<[^>]+>)|([^<]+)""")
         val beginRegex = Regex("""begin="([^"]+)"""")
+        val endRegex = Regex("""end="([^"]+)"""")
         val roleRegex = Regex("""(?:ttm:role|role)="([^"]+)"""")
         val agentRegex = Regex("""(?:ttm:agent|agent)="([^"]+)"""")
         
@@ -199,11 +200,14 @@ object LrcRedLyricsProvider : LyricsProvider {
                 
                 val pBeginStr = beginRegex.find(pAttrs)?.groupValues?.get(1) ?: continue
                 val lineStartMs = timeToMs(pBeginStr) ?: continue
+                val lineEndMs = timeToMs(endRegex.find(pAttrs)?.groupValues?.get(1))
                 val agent = agentRegex.find(pAttrs)?.groupValues?.get(1)
                 
                 val fgPieces = mutableListOf<Pair<Long, String>>()
                 val bgPieces = mutableListOf<Pair<Long, String>>()
                 var currentSpanMs: Long = lineStartMs
+                var maxFgEndMs = -1L
+                var maxBgEndMs = -1L
                 
                 // Track nesting states
                 val bgStack = mutableListOf<Boolean>()
@@ -224,11 +228,17 @@ object LrcRedLyricsProvider : LyricsProvider {
                             }
                         } else if (tag.startsWith("<span") || tag.startsWith("<s ")) {
                             val role = roleRegex.find(tag)?.groupValues?.get(1)
-                            val isSkip = role == "x-translation" || role == "x-roman"
-                            val isBg = role == "x-bg"
+                            val isSkip = (role == "x-translation" || role == "x-roman") || (skipStack.lastOrNull() ?: false)
+                            val isBg = (role == "x-bg") || (bgStack.lastOrNull() ?: false)
                             
-                            bgStack.add(isBg || (bgStack.lastOrNull() ?: false))
-                            skipStack.add(isSkip || (skipStack.lastOrNull() ?: false))
+                            bgStack.add(isBg)
+                            skipStack.add(isSkip)
+                            
+                            val tEndMs = timeToMs(endRegex.find(tag)?.groupValues?.get(1))
+                            if (!isSkip && tEndMs != null) {
+                                if (isBg) maxBgEndMs = maxOf(maxBgEndMs, tEndMs)
+                                else maxFgEndMs = maxOf(maxFgEndMs, tEndMs)
+                            }
                             
                             val tBegin = beginRegex.find(tag)?.groupValues?.get(1)
                             if (tBegin != null) {
@@ -252,7 +262,7 @@ object LrcRedLyricsProvider : LyricsProvider {
                     }
                 }
                 
-                fun buildLine(pieces: List<Pair<Long, String>>, isBg: Boolean) {
+                fun buildLine(pieces: List<Pair<Long, String>>, isBg: Boolean, endMs: Long?) {
                     if (pieces.isEmpty()) return
                     val sb = java.lang.StringBuilder()
                     
@@ -260,6 +270,7 @@ object LrcRedLyricsProvider : LyricsProvider {
                     if (agent != null) sb.append("{agent:$agent}")
                     
                     var lastMs = -1L
+                    var hasSpanTags = false
                     for ((ms, text) in pieces) {
                         if (text.isBlank()) {
                             sb.append(text)
@@ -268,8 +279,12 @@ object LrcRedLyricsProvider : LyricsProvider {
                         if (ms != lastMs) {
                             sb.append("<${formatTime(ms)}>")
                             lastMs = ms
+                            hasSpanTags = true
                         }
                         sb.append(text)
+                    }
+                    if (hasSpanTags && endMs != null && endMs > lastMs) {
+                        sb.append("<${formatTime(endMs)}>")
                     }
                     val richText = sb.toString().trim()
                     if (richText.isNotEmpty()) {
@@ -277,8 +292,8 @@ object LrcRedLyricsProvider : LyricsProvider {
                     }
                 }
                 
-                buildLine(fgPieces, false)
-                buildLine(bgPieces, true)
+                buildLine(fgPieces, false, if (maxFgEndMs > 0L) maxFgEndMs else lineEndMs)
+                buildLine(bgPieces, true, if (maxBgEndMs > 0L) maxBgEndMs else lineEndMs)
             }
         }.entries.sortedBy { it.key }
         
