@@ -249,11 +249,12 @@ class InnerTube {
             append("X-Origin", YouTubeClient.ORIGIN_YOUTUBE_MUSIC)
             append("Referer", YouTubeClient.REFERER_YOUTUBE_MUSIC)
             visitorData?.let { append("X-Goog-Visitor-Id", it) }
-            val activeCookie = cookie ?: visitorCookie
+            val useLoggedInCookie = setLogin && client.loginSupported
+            val activeCookie = if (useLoggedInCookie) (cookie ?: visitorCookie) else visitorCookie
             if (activeCookie != null) {
                 append("cookie", activeCookie)
             }
-            if (setLogin && client.loginSupported) {
+            if (useLoggedInCookie) {
                 val sapisid = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"] ?: cookieMap["__Secure-1PAPISID"]
                 if (sapisid != null) {
                     val currentTime = System.currentTimeMillis() / 1000
@@ -297,14 +298,14 @@ class InnerTube {
         params: String? = null,
         continuation: String? = null,
     ) = withRetry {
-        httpClient.post("search") {
-            ytClient(client, setLogin = useLoginForBrowse)
+        suspend fun executeSearch(authenticated: Boolean) = httpClient.post("search") {
+            ytClient(client, setLogin = authenticated)
             setBody(
                 SearchBody(
                     context = client.toContext(
                         locale,
                         visitorData,
-                        if (useLoginForBrowse) dataSyncId else null
+                        if (authenticated) dataSyncId else null
                     ),
                     query = query,
                     params = params
@@ -312,6 +313,16 @@ class InnerTube {
             )
             parameter("continuation", continuation)
             parameter("ctoken", continuation)
+        }
+
+        try {
+            executeSearch(authenticated = useLoginForBrowse)
+        } catch (e: ClientRequestException) {
+            if (useLoginForBrowse && e.response.status == HttpStatusCode.Unauthorized) {
+                executeSearch(authenticated = false)
+            } else {
+                throw e
+            }
         }
     }
 
