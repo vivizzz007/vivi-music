@@ -308,7 +308,10 @@ object LyricsRomanizationHelper {
         val memCached = if (!force) memoryCache.get(cacheKey) else null
         if (memCached != null && memCached.size == nonBlankEntries.size) {
             nonBlankEntries.forEachIndexed { index, entry ->
-                entry.romanizedTextFlow.value = memCached[index]
+                val romanized = memCached[index]
+                if (hasNonLatinLetters(entry.text) && romanized.isNotBlank() && !romanized.equals(entry.text, ignoreCase = true)) {
+                    entry.romanizedTextFlow.value = romanized
+                }
             }
             return@withContext
         }
@@ -318,7 +321,10 @@ object LyricsRomanizationHelper {
         if (diskCached != null && diskCached.size == nonBlankEntries.size) {
             memoryCache.put(cacheKey, diskCached)
             nonBlankEntries.forEachIndexed { index, entry ->
-                entry.romanizedTextFlow.value = diskCached[index]
+                val romanized = diskCached[index]
+                if (hasNonLatinLetters(entry.text) && romanized.isNotBlank() && !romanized.equals(entry.text, ignoreCase = true)) {
+                    entry.romanizedTextFlow.value = romanized
+                }
             }
             return@withContext
         }
@@ -365,7 +371,7 @@ object LyricsRomanizationHelper {
         if (results.size == nonBlankEntries.size) {
             nonBlankEntries.forEachIndexed { index, entry ->
                 val romanized = results[index]
-                if (romanized != entry.text && romanized.isNotBlank()) {
+                if (hasNonLatinLetters(entry.text) && romanized.isNotBlank() && !romanized.equals(entry.text, ignoreCase = true)) {
                     entry.romanizedTextFlow.value = romanized
                 }
             }

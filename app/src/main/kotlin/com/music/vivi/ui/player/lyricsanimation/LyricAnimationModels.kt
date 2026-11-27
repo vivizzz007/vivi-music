@@ -2,7 +2,6 @@ package com.music.vivi.ui.player.lyricsanimation
 
 import androidx.compose.ui.unit.dp
 import com.music.vivi.lyrics.LyricsEntry
-import com.music.vivi.lyrics.LyricsUtils
 
 val WORD_RISE = 2.dp
 val WIPE_FEATHER = 30.dp
@@ -236,7 +235,7 @@ class ViviLyricLine(
 }
 
 fun LyricsEntry.toViviLyricLine(nextEntryTime: Long?): ViviLyricLine {
-    val wordList = if (words != null && words.isNotEmpty() && !LyricsUtils.isHindi(text)) {
+    val wordList = if (words != null && words.isNotEmpty()) {
         words.map { wt ->
             val startMs = (wt.startTime * 1000).toLong()
             val endMs = maxOf(startMs + 50L, (wt.endTime * 1000).toLong())
@@ -304,7 +303,7 @@ private fun Char.isBlockScript(): Boolean =
         this in '゠'..'ヿ' || this in '가'..'힯'
 
 private fun Char.isJoinedScript(): Boolean =
-    this in '֐'..'ࣿ'
+    this in '\u0590'..'\u08FF' || this in '\u0900'..'\u0DFF'
 
 private const val GROW_MAX_CHARS = 7
 private const val GROW_MIN_SOLO_MS = 1_100L

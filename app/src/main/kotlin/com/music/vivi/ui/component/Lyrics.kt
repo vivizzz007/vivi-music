@@ -8,6 +8,7 @@ package com.music.vivi.ui.component
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.text.Layout
 import android.view.WindowManager
 import android.widget.Toast
@@ -93,6 +94,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -114,6 +116,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -134,8 +137,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.music.vivi.ui.player.lyricsanimation.rememberLyricClock
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.runtime.State
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.drawWithContent
@@ -224,6 +225,7 @@ import androidx.compose.foundation.gestures.verticalDrag
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.AnimationState
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.core.snap
 import androidx.compose.foundation.layout.offset
@@ -336,7 +338,12 @@ fun Lyrics(
         defaultValue = PlayerBackgroundStyle.LIVE_MESH
     )
     val (useNewPlayerDesign) = rememberPreference(UseNewPlayerDesignKey, defaultValue = false)
-    val anchorRatio = if (useNewPlayerDesign) LYRICS_ANCHOR_RATIO else APPLE_MUSIC_ANCHOR_RATIO
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val anchorRatio = when {
+        isLandscape -> 0.5f
+        useNewPlayerDesign -> LYRICS_ANCHOR_RATIO
+        else -> APPLE_MUSIC_ANCHOR_RATIO
+    }
 
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -596,23 +603,6 @@ fun Lyrics(
         }
     }
 
-    LaunchedEffect(activeListIndex) {
-        if (mergedLyricsList.isNotEmpty()) {
-            val h = itemHeights.toMap()
-            val windowStart = (activeListIndex - 3).coerceAtLeast(0)
-            val windowEnd = (activeListIndex + 3).coerceAtMost(mergedLyricsList.size - 1)
-            val needsMeasurement = (windowStart..windowEnd).any { !h.containsKey(it) }
-            if (needsMeasurement) {
-                isInitialLayout = true
-                snapshotFlow { 
-                    val hh = itemHeights.toMap()
-                    (windowStart..windowEnd).all { hh.containsKey(it) } 
-                }.first { it }
-                isInitialLayout = false
-            }
-        }
-    }
-
     // Handle back button press - close selection mode instead of exiting screen
     BackHandler(enabled = isSelectionModeActive) {
         isSelectionModeActive = false
@@ -670,6 +660,9 @@ fun Lyrics(
     // Reset selection mode if lyrics change
     LaunchedEffect(lyrics, lines) {
         isAutoScrollEnabled = true
+        flingJob?.cancel()
+        flingJob = null
+        userManualOffset = 0f
         scrollTargetIndex = -1
         deferredCurrentLineIndex = 0
         isSelectionModeActive = false
@@ -749,15 +742,19 @@ fun Lyrics(
 
                 val shouldScroll = when {
                     isSeeking -> true
-                    !isCurrentTargetStillActive && anyStillActive && scrollMax > scrollTargetIndex -> true
+                    scrollTargetIndex == -1 -> true
+                    !isCurrentTargetStillActive && anyStillActive && scrollMax != scrollTargetIndex -> true
                     !isCurrentTargetStillActive && !anyStillActive && previousScrollActiveIndices.isNotEmpty() -> true
-                    scrollTargetIndex == -1 && anyStillActive -> true
-                    previousScrollActiveIndices.isEmpty() && anyStillActive && scrollMax > scrollTargetIndex -> true
+                    previousScrollActiveIndices.isEmpty() && anyStillActive && scrollMax != scrollTargetIndex -> true
                     else -> false
                 }
 
                 if (shouldScroll) {
                     val targetToScroll = when {
+                        (isSeeking || scrollTargetIndex == -1) && !anyStillActive -> {
+                            lines.indexOfLast { !it.isBackground && it.time <= effectivePosition }
+                                .coerceAtLeast(0)
+                        }
                         isSeeking -> scrollMax
                         !isCurrentTargetStillActive && anyStillActive -> scrollMax
                         !isCurrentTargetStillActive && !anyStillActive -> {
@@ -767,12 +764,15 @@ fun Lyrics(
                         }
                         else -> scrollMax
                     }
-                    if (targetToScroll != -1 && (isSeeking || targetToScroll > scrollTargetIndex)) {
+                    if (targetToScroll != -1 && (isSeeking || targetToScroll != scrollTargetIndex)) {
                         scrollTargetIndex = targetToScroll
+                        if (scrollMax == -1) {
+                            lastMainMaxSeen = targetToScroll
+                        }
                     }
                 }
                 
-                if (scrollMax > lastMainMaxSeen && scrollMax != -1) {
+                if (scrollMax != -1) {
                     lastMainMaxSeen = scrollMax
                 }
                 
@@ -1087,17 +1087,27 @@ fun Lyrics(
                 modifier = Modifier.fillMaxSize().padding(bottom = 12.dp)
             ) {
                 val maxHeightPx = constraints.maxHeight.toFloat()
-                val anchorY = maxHeightPx * LYRICS_ANCHOR_RATIO
+                val metroAnchorRatio = if (isLandscape || useNewPlayerDesign) 0.5f else APPLE_MUSIC_ANCHOR_RATIO
+                val anchorY = maxHeightPx * metroAnchorRatio
                 val lineHeightPx = with(density) { LYRICS_ITEM_FALLBACK_HEIGHT_DP.toPx() }
                 val constraintLineHeightPx = with(density) { 120.dp.toPx() }
+                var previousActiveListIndex by remember(lyrics, lines) { mutableIntStateOf(activeListIndex) }
+                val scrollingDown = activeListIndex >= previousActiveListIndex
+                LaunchedEffect(activeListIndex) {
+                    previousActiveListIndex = activeListIndex
+                }
 
-                val positions = remember(itemHeights.toMap(), activeListIndex, mergedLyricsList) {
+                val positions = remember(itemHeights.toMap(), activeListIndex, mergedLyricsList, useNewPlayerDesign) {
                     val map = mutableMapOf<Int, Float>()
                     if (activeListIndex == -1 || mergedLyricsList.isEmpty()) return@remember map
                     
-                    map[activeListIndex] = 0f
-                    var currentY = 0f
                     val indicatorHeightPx = with(density) { 72.dp.toPx() }
+                    val activeItem = mergedLyricsList[activeListIndex]
+                    val activeHeight = itemHeights[activeListIndex]?.toFloat()
+                        ?: (if (activeItem is LyricsListItem.Indicator) indicatorHeightPx else lineHeightPx)
+                    val activeTopOffset = if (useNewPlayerDesign) -activeHeight / 2f else 0f
+                    map[activeListIndex] = activeTopOffset
+                    var currentY = activeTopOffset
                     for (i in activeListIndex - 1 downTo 0) {
                         val item = mergedLyricsList[i]
                         val height = itemHeights[i]?.toFloat() ?: (if (item is LyricsListItem.Indicator) indicatorHeightPx else lineHeightPx)
@@ -1105,7 +1115,7 @@ fun Lyrics(
                         currentY -= (height + if (noGap) 0f else with(density) { LYRICS_ITEM_GAP_DP.toPx() })
                         map[i] = currentY
                     }
-                    currentY = 0f
+                    currentY = activeTopOffset
                     for (i in activeListIndex until mergedLyricsList.size - 1) {
                         val currentItem = mergedLyricsList[i]
                         val nextItem = mergedLyricsList[i + 1]
@@ -1146,6 +1156,8 @@ fun Lyrics(
 
                 val scrollClampMin = minOf(minOffset, maxOffset)
                 val scrollClampMax = maxOf(minOffset, maxOffset)
+                val currentClampMin by rememberUpdatedState(scrollClampMin)
+                val currentClampMax by rememberUpdatedState(scrollClampMax)
 
                 LaunchedEffect(scrollClampMin, scrollClampMax) {
                     if (userManualOffset < scrollClampMin || userManualOffset > scrollClampMax) {
@@ -1155,16 +1167,16 @@ fun Lyrics(
 
                 LaunchedEffect(isAutoScrollEnabled, mergedLyricsList.size) {
                     if (isAutoScrollEnabled) {
+                        flingJob?.cancel()
+                        flingJob = null
                         val start = userManualOffset
                         if (kotlin.math.abs(start) < 1f) {
                             userManualOffset = 0f
                             return@LaunchedEffect
                         }
                         val anim = androidx.compose.animation.core.Animatable(start)
-                        var lastValue = start
-                        anim.animateTo(0f, tween((kotlin.math.abs(start) / 4f).toInt().coerceIn(200, 600), easing = FastOutSlowInEasing)) {
-                            userManualOffset += (value - lastValue)
-                            lastValue = value
+                        anim.animateTo(0f, tween((kotlin.math.abs(start) / 4f).toInt().coerceIn(200, 600), easing = METRO_LYRICS_SCROLL_EASING)) {
+                            userManualOffset = value
                         }
                         userManualOffset = 0f
                     }
@@ -1173,7 +1185,10 @@ fun Lyrics(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .fadingEdge(top = LYRICS_FADE_TOP_DP, bottom = LYRICS_FADE_BOTTOM_DP)
+                        .fadingEdge(
+                            top = if (useNewPlayerDesign) LYRICS_FADE_TOP_DP else 48.dp,
+                            bottom = LYRICS_FADE_BOTTOM_DP
+                        )
                         .clipToBounds()
                         .pointerInput(Unit) {
                             coroutineScope {
@@ -1188,17 +1203,19 @@ fun Lyrics(
                                         val dragAmount = change.positionChange().y
                                         velocityTracker.addPosition(change.uptimeMillis, change.position)
                                         
+                                        val clampMin = currentClampMin
+                                        val clampMax = currentClampMax
                                         val newOffset = userManualOffset + dragAmount
-                                        if (newOffset in scrollClampMin..scrollClampMax) {
+                                        if (newOffset in clampMin..clampMax) {
                                             userManualOffset = newOffset
                                             dragConsumed = true
                                             change.consume()
                                         } else {
-                                            val overscroll = if (newOffset < scrollClampMin) newOffset - scrollClampMin else newOffset - scrollClampMax
+                                            val overscroll = if (newOffset < clampMin) newOffset - clampMin else newOffset - clampMax
                                             val friction = 0.35f / (1f + kotlin.math.abs(overscroll) / 300f)
                                             userManualOffset = (userManualOffset + dragAmount * friction).coerceIn(
-                                                scrollClampMin - 150f,
-                                                scrollClampMax + 150f
+                                                clampMin - 150f,
+                                                clampMax + 150f
                                             )
                                             change.consume()
                                         }
@@ -1216,10 +1233,12 @@ fun Lyrics(
                                                 initialVelocity = velocity
                                             )
                                             animState.animateDecay(decayAnimSpec) {
-                                                if (value in scrollClampMin..scrollClampMax) {
+                                                val clampMin = currentClampMin
+                                                val clampMax = currentClampMax
+                                                if (value in clampMin..clampMax) {
                                                     userManualOffset = value
                                                 } else {
-                                                    val target = value.coerceIn(scrollClampMin, scrollClampMax)
+                                                    val target = value.coerceIn(clampMin, clampMax)
                                                     cancelAnimation()
                                                     launch {
                                                         androidx.compose.animation.core.Animatable(userManualOffset).animateTo(
@@ -1236,12 +1255,14 @@ fun Lyrics(
                                             }
                                         }
                                     } else {
-                                        if (userManualOffset < scrollClampMin || userManualOffset > scrollClampMax) {
-                                            val target = userManualOffset.coerceIn(scrollClampMin, scrollClampMax)
+                                        val clampMin = currentClampMin
+                                        val clampMax = currentClampMax
+                                        if (userManualOffset < clampMin || userManualOffset > clampMax) {
+                                            val target = userManualOffset.coerceIn(clampMin, clampMax)
                                             flingJob = launch {
                                                 androidx.compose.animation.core.Animatable(userManualOffset).animateTo(
                                                     targetValue = target,
-                                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                                    animationSpec = tween(300, easing = METRO_LYRICS_SCROLL_EASING)
                                                 ) {
                                                     userManualOffset = value
                                                 }
@@ -1276,7 +1297,11 @@ fun Lyrics(
 
                     mergedLyricsList.forEachIndexed { listIndex, listItem ->
                         key(listItem) {
-                            val distance = kotlin.math.abs(listIndex - activeListIndex)
+                            val directionalSteps = if (scrollingDown) {
+                                (listIndex - activeListIndex).coerceAtLeast(0)
+                            } else {
+                                (activeListIndex - listIndex).coerceAtLeast(0)
+                            }
                             val targetOffset = anchorY + (positions[listIndex] ?: ((listIndex - activeListIndex) * lineHeightPx))
                             
                             val frozenOffset = remember { androidx.compose.runtime.mutableFloatStateOf(targetOffset) }
@@ -1290,7 +1315,11 @@ fun Lyrics(
                                 targetValue = if (isAutoScrollEnabled) targetOffset else frozenOffset.floatValue,
                                 animationSpec = if (isInitialLayout || !isAutoScrollEnabled) snap() 
                                                 else {
-                                                    tween(750, (distance * LYRICS_STAGGER_DELAY_PER_DISTANCE).coerceAtMost(LYRICS_STAGGER_DELAY_MAX_MS), FastOutSlowInEasing)
+                                                    tween(
+                                                        durationMillis = 750,
+                                                        delayMillis = (directionalSteps * LYRICS_STAGGER_DELAY_PER_DISTANCE).coerceAtMost(LYRICS_STAGGER_DELAY_MAX_MS),
+                                                        easing = FastOutSlowInEasing
+                                                    )
                                                 },
                                 label = "lyricStaggeredOffset_$listIndex"
                             )
@@ -1443,6 +1472,9 @@ fun Lyrics(
 
             LazyColumn(
             state = lazyListState,
+            verticalArrangement = Arrangement.spacedBy(
+                if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) 6.dp else 0.dp
+            ),
             contentPadding = if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                 PaddingValues(
                     top = totalMaxHeight * anchorRatio,
@@ -1851,10 +1883,15 @@ fun Lyrics(
                                 }
 
                                 val isPureBacking = item.isBackground || (lyricLine.text.trim().startsWith("(") && lyricLine.text.trim().endsWith(")"))
+                                val hasIndic = lyricLine.text.any { it in '\u0900'..'\u0DFF' }
 
                                 val lyricStyle = MaterialTheme.typography.headlineLarge.copy(
                                     fontSize = if (isPureBacking) BACKING_FONT_SIZE else if (isSynced) SYNCED_FONT_SIZE else UNSYNCED_FONT_SIZE,
-                                    lineHeight = if (isPureBacking) BACKING_LINE_HEIGHT else if (isSynced) SYNCED_LINE_HEIGHT else UNSYNCED_LINE_HEIGHT,
+                                    lineHeight = when {
+                                        isPureBacking -> if (hasIndic) INDIC_BACKING_LINE_HEIGHT else BACKING_LINE_HEIGHT
+                                        isSynced -> if (hasIndic) INDIC_SYNCED_LINE_HEIGHT else SYNCED_LINE_HEIGHT
+                                        else -> if (hasIndic) INDIC_UNSYNCED_LINE_HEIGHT else UNSYNCED_LINE_HEIGHT
+                                    },
                                     fontStyle = if (isPureBacking) FontStyle.Italic else FontStyle.Normal,
                                     fontWeight = FontWeight.ExtraBold,
                                     textAlign = agentTextAlign,
@@ -1983,10 +2020,15 @@ fun Lyrics(
                                 )
 
                                 val isPureBacking = item.isBackground || (mainText.trim().startsWith("(") && mainText.trim().endsWith(")"))
+                                val hasIndic = mainText.any { it in '\u0900'..'\u0DFF' }
 
                                 val lyricStyle = MaterialTheme.typography.headlineLarge.copy(
                                     fontSize = if (isPureBacking) BACKING_FONT_SIZE else if (isSynced) SYNCED_FONT_SIZE else UNSYNCED_FONT_SIZE,
-                                    lineHeight = if (isPureBacking) BACKING_LINE_HEIGHT else if (isSynced) SYNCED_LINE_HEIGHT else UNSYNCED_LINE_HEIGHT,
+                                    lineHeight = when {
+                                        isPureBacking -> if (hasIndic) INDIC_BACKING_LINE_HEIGHT else BACKING_LINE_HEIGHT
+                                        isSynced -> if (hasIndic) INDIC_SYNCED_LINE_HEIGHT else SYNCED_LINE_HEIGHT
+                                        else -> if (hasIndic) INDIC_UNSYNCED_LINE_HEIGHT else UNSYNCED_LINE_HEIGHT
+                                    },
                                     fontStyle = if (isPureBacking) FontStyle.Italic else FontStyle.Normal,
                                     fontWeight = FontWeight.ExtraBold,
                                     textAlign = agentTextAlign,
@@ -3002,11 +3044,14 @@ private val LINE_FALLOFF_BLUR = arrayOf(0.dp, 1.dp, 1.dp, 1.7.dp, 2.4.dp)
 
 private val SYNCED_FONT_SIZE = 34.sp
 private val SYNCED_LINE_HEIGHT = 41.sp
+private val INDIC_SYNCED_LINE_HEIGHT = 46.sp
 private val UNSYNCED_FONT_SIZE = 30.sp
 private val UNSYNCED_LINE_HEIGHT = 38.sp
+private val INDIC_UNSYNCED_LINE_HEIGHT = 42.sp
 
 private val BACKING_FONT_SIZE = 23.sp
 private val BACKING_LINE_HEIGHT = 29.sp
+private val INDIC_BACKING_LINE_HEIGHT = 33.sp
 private const val BACKING_ALPHA = 0.72f
 
 private val SUB_LYRIC_FONT_SIZE = 20.sp

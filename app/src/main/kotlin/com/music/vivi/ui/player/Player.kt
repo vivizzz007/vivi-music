@@ -4106,7 +4106,7 @@ fun InlineLyricsView(
                 val lyricsContent: @Composable () -> Unit = {
                     Lyrics(
                         sliderPositionProvider = positionProvider,
-                        modifier = Modifier.padding(horizontal = 24.dp),
+                        modifier = Modifier.padding(horizontal = 20.dp),
                         showLyrics = showLyrics,
                         extraBottomPadding = controlsOverlap
                     )
