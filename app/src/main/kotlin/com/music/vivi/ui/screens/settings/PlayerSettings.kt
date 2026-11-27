@@ -999,6 +999,7 @@ fun PlayerSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.screenshot),
                     title = { Text(stringResource(R.string.keep_screen_on_when_player_is_expanded)) },
+                    description = { Text(stringResource(R.string.keep_screen_on_when_player_is_expanded_desc)) },
                     trailingContent = {
                         Switch(
                             checked = keepScreenOn,

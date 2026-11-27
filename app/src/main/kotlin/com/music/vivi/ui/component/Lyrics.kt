@@ -6,11 +6,9 @@
 package com.music.vivi.ui.component
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.text.Layout
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -627,15 +625,10 @@ fun Lyrics(
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Keep screen on while lyrics are visible, and re-enable auto-scroll when lyrics are shown
-    DisposableEffect(showLyrics) {
-        val activity = context as? Activity
+    // Re-enable auto-scroll when lyrics are shown (FLAG_KEEP_SCREEN_ON is managed by BottomSheetPlayer)
+    LaunchedEffect(showLyrics) {
         if (showLyrics) {
-            activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             isAutoScrollEnabled = true
-        }
-        onDispose {
-            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
 

@@ -412,9 +412,8 @@ fun BottomSheetPlayer(
     val swipeLyrics by rememberPreference(SwipeLyricsKey, false)
     val enableLyricsThumbnailPlayPause by rememberPreference(EnableLyricsThumbnailPlayPauseKey, false)
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
-    val keepScreenOn = isPlaying && isKeepScreenOn
 
-    DisposableEffect(playerBackground, state.isExpanded, useDarkTheme, keepScreenOn) {
+    DisposableEffect(playerBackground, state.isExpanded, useDarkTheme) {
         val window = (context as? android.app.Activity)?.window
         if (window != null && state.isExpanded) {
             WindowCompat.getInsetsController(window, window.decorView).hide(WindowInsetsCompat.Type.ime())
@@ -429,11 +428,6 @@ fun BottomSheetPlayer(
                     insetsController.isAppearanceLightStatusBars = !useDarkTheme
                 }
             }
-
-            if (keepScreenOn && state.isExpanded)
-                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            else
-                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
         
         onDispose {
@@ -441,7 +435,6 @@ fun BottomSheetPlayer(
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
                 insetsController.isAppearanceLightStatusBars = !useDarkTheme
-                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
         }
     }
@@ -1009,6 +1002,20 @@ fun BottomSheetPlayer(
 
     var showInlineLyrics by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    // Keep screen on in a single place so lyrics and player (even when paused) do not clear each other's flag
+    val shouldKeepScreenOn = state.isExpanded && (isKeepScreenOn || showInlineLyrics)
+    DisposableEffect(shouldKeepScreenOn) {
+        val window = (context as? android.app.Activity)?.window
+        if (shouldKeepScreenOn) {
+            window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+        onDispose {
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
     }
 
     var showInlineQueue by rememberSaveable {
