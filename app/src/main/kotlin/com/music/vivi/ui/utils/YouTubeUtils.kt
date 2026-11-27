@@ -86,8 +86,8 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?, isDataSaverEnabled
  * Rewrites a YouTube thumbnail URL to request the highest quality tier.
  *
  * Quality ladder:
- *   w >= 500  → maxresdefault.jpg (1280×720 HD, native 16:9, crystal clear for player/artwork)
- *   w >= 250  → hqdefault.jpg    (480×360, medium for cards/grids)
+ *   w >= 800  → maxresdefault.jpg (1280×720 HD, native 16:9, crystal clear for player/artwork)
+ *   w >= 250  → hqdefault.jpg    (480×360, medium for cards/grids/miniplayer)
  *   w <  250  → mqdefault.jpg    (320×180, clean 16:9, sharp for list items/queue)
  *
  * Data Saver:
@@ -108,7 +108,7 @@ private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Bo
 
     val w = width ?: height ?: 1200
     return when {
-        w >= 500  -> "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg"
+        w >= 800  -> "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg"
         w >= 250  -> "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
         else      -> "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
     }
