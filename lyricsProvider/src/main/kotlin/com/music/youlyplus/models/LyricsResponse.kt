@@ -34,6 +34,13 @@ data class LyricsItem(
     val time: Long? = null,         // milliseconds
     val duration: Long? = null,     // milliseconds
     val syllabus: List<Syllable>? = null,
+    val element: LyricsElement? = null,
+)
+
+@Serializable
+data class LyricsElement(
+    val singer: String? = null,
+    val isBackground: Boolean? = null,
 )
 
 @Serializable
