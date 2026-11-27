@@ -105,6 +105,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
@@ -142,9 +143,11 @@ import com.music.vivi.constants.AppBarHeight
 import com.music.vivi.constants.AppLanguageKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
+import com.music.vivi.constants.DensityScaleKey
 import com.music.vivi.constants.DisableScreenshotKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.EnableHighRefreshRateKey
+import com.music.vivi.constants.EnableLandscapeScalingKey
 import com.music.vivi.constants.EnableSettingsPopupKey
 import com.music.vivi.constants.ListenTogetherInTopBarKey
 import com.music.vivi.constants.ListenTogetherUsernameKey
@@ -580,6 +583,28 @@ class MainActivity : ComponentActivity() {
             gitHubViewModel.checkStarStatus(this@MainActivity)
         }
 
+        val (densityScale) = rememberPreference(DensityScaleKey, defaultValue = 1.0f)
+        val (enableLandscapeScaling) = rememberPreference(EnableLandscapeScalingKey, defaultValue = true)
+        val systemDensity = LocalDensity.current
+        val windowSize = LocalWindowInfo.current.containerDpSize
+        val smallestDimensionDp = minOf(windowSize.width, windowSize.height).value
+        val landscapeScale = if (enableLandscapeScaling) {
+            when {
+                smallestDimensionDp >= 840f -> 1.15f
+                smallestDimensionDp >= 720f -> 1.1f
+                smallestDimensionDp >= 600f -> 1.05f
+                else -> 1f
+            }
+        } else {
+            1f
+        }
+        val userScale = densityScale.takeIf { it.isFinite() && it > 0f } ?: 1f
+        val appDensity = Density(
+            density = systemDensity.density * landscapeScale * userScale,
+            fontScale = systemDensity.fontScale
+        )
+
+        CompositionLocalProvider(LocalDensity provides appDensity) {
         vivimusicTheme(
             darkTheme = useDarkTheme,
             pureBlack = pureBlack,
@@ -1419,6 +1444,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+        }
         }
     }
 

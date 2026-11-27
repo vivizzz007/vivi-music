@@ -6,11 +6,9 @@
 package com.music.vivi.ui.screens.settings
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.border
-import androidx.core.content.edit
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +66,7 @@ import com.music.vivi.constants.DensityScaleKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.EnableDynamicIconKey
 import com.music.vivi.constants.EnableHighRefreshRateKey
+import com.music.vivi.constants.EnableLandscapeScalingKey
 import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
@@ -307,23 +306,12 @@ fun AppearanceSettings(
     )
 
     // Density scale preferences
-    val context = activity as Context
-    val sharedPreferences = remember { context.getSharedPreferences("vivimusic_settings", Context.MODE_PRIVATE) }
-    val prefDensityScale = remember(sharedPreferences) {
-        sharedPreferences.getFloat("density_scale_factor", 1.0f)
-    }
-    val (densityScale, setDensityScale) = rememberPreference(DensityScaleKey, defaultValue = prefDensityScale)
-    var showRestartDialog by rememberSaveable { mutableStateOf(false) }
+    val (densityScale, onDensityScaleChange) = rememberPreference(DensityScaleKey, defaultValue = 1.0f)
+    val (enableLandscapeScaling, onEnableLandscapeScalingChange) = rememberPreference(
+        EnableLandscapeScalingKey,
+        defaultValue = true
+    )
     var showDensityScaleDialog by rememberSaveable { mutableStateOf(false) }
-
-    val onDensityScaleChange: (Float) -> Unit = { newScale ->
-        setDensityScale(newScale)
-        // Write to SharedPreferences for DensityScaler to read on next startup
-        sharedPreferences.edit {
-            putFloat("density_scale_factor", newScale)
-        }
-        showRestartDialog = true
-    }
 
     val (listenTogetherInTopBar, onListenTogetherInTopBarChange) = rememberPreference(
         ListenTogetherInTopBarKey,
@@ -612,44 +600,6 @@ fun AppearanceSettings(
         )
     }
 
-    if (showRestartDialog) {
-        DefaultDialog(
-            onDismiss = { showRestartDialog = false },
-            buttons = {
-                TextButton(
-                    onClick = { showRestartDialog = false }
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-                TextButton(
-                    onClick = {
-                        showRestartDialog = false
-                        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        }
-                        context.startActivity(intent)
-                        Runtime.getRuntime().exit(0)
-                    }
-                ) {
-                    Text(text = stringResource(R.string.restart))
-                }
-            }
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.restart_required),
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text(
-                    text = stringResource(R.string.density_restart_message),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
-
     if (showDensityScaleDialog) {
         DefaultDialog(
             onDismiss = { showDensityScaleDialog = false },
@@ -674,7 +624,7 @@ fun AppearanceSettings(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = scale.label,
+                            text = stringResource(densityScaleLabelRes(scale)),
                             style = MaterialTheme.typography.bodyLarge,
                             color = if (densityScale == scale.value) {
                                 MaterialTheme.colorScheme.primary
@@ -1769,9 +1719,30 @@ fun AppearanceSettings(
                     icon = painterResource(R.drawable.grid_view),
                     title = { Text(stringResource(R.string.display_density)) },
                     description = {
-                        Text(DensityScale.fromValue(densityScale).label)
+                        Text(stringResource(densityScaleLabelRes(DensityScale.fromValue(densityScale))))
                     },
                     onClick = { showDensityScaleDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.grid_view),
+                    title = { Text(stringResource(R.string.enable_landscape_scaling)) },
+                    description = { Text(stringResource(R.string.enable_landscape_scaling_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = enableLandscapeScaling,
+                            onCheckedChange = onEnableLandscapeScalingChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableLandscapeScaling) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableLandscapeScalingChange(!enableLandscapeScaling) }
                 )
             )
         )
@@ -1916,3 +1887,15 @@ enum class MiniPlayerDesignOption {
     NEW,
     APPLE
 }
+
+private fun densityScaleLabelRes(scale: DensityScale): Int =
+    when (scale) {
+        DensityScale.EXTRA_LARGE -> R.string.density_extra_large
+        DensityScale.LARGE -> R.string.density_large
+        DensityScale.SLIGHTLY_LARGE -> R.string.density_slightly_large
+        DensityScale.NATIVE -> R.string.density_native
+        DensityScale.SLIGHTLY_COMPACT -> R.string.density_slightly_compact
+        DensityScale.COMPACT -> R.string.density_compact
+        DensityScale.VERY_COMPACT -> R.string.density_very_compact
+        DensityScale.ULTRA_COMPACT -> R.string.density_ultra_compact
+    }

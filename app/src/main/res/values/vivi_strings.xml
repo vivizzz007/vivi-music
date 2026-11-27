@@ -187,6 +187,17 @@
     <string name="tertiary_color_style">Tertiary color</string>
     <string name="secondary_color_style">Secondary</string>
     <string name="display_density">Display density</string>
+    <string name="settings_interface_density_summary">Size of text, icons and controls across the app</string>
+    <string name="enable_landscape_scaling">Landscape scaling</string>
+    <string name="enable_landscape_scaling_desc">Scale the interface for larger screens in landscape mode</string>
+    <string name="density_extra_large">Extra large (150%)</string>
+    <string name="density_large">Large (125%)</string>
+    <string name="density_slightly_large">Slightly large (115%)</string>
+    <string name="density_native">Native (100%)</string>
+    <string name="density_slightly_compact">Slightly compact (85%)</string>
+    <string name="density_compact">Compact (75%)</string>
+    <string name="density_very_compact">Very compact (65%)</string>
+    <string name="density_ultra_compact">Ultra compact (55%)</string>
     <string name="restart">Restart</string>
     <string name="restart_required">Restart required</string>
     <string name="density_restart_message">The display density change will take effect after restarting the app. Do you want to restart now?</string>
