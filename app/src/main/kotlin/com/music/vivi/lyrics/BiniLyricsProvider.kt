@@ -86,11 +86,12 @@ object BiniLyricsProvider : LyricsProvider {
         album: String?,
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val url = "$BASE_URL/getLyrics".toHttpUrlOrNull()?.newBuilder()
+            val urlBuilder = "$BASE_URL/getLyrics".toHttpUrlOrNull()?.newBuilder()
                 ?.addQueryParameter("track", title)
                 ?.addQueryParameter("artist", artist)
-                ?.build()
-                ?.toString() ?: return@withContext Result.failure(Exception("Invalid URL"))
+            if (duration > 0) urlBuilder?.addQueryParameter("duration", duration.toString())
+            if (!album.isNullOrBlank()) urlBuilder?.addQueryParameter("album", album)
+            val url = urlBuilder?.build()?.toString() ?: return@withContext Result.failure(Exception("Invalid URL"))
 
             val request = Request.Builder().url(url).build()
             val response = client.newCall(request).execute()
@@ -157,7 +158,15 @@ object BiniLyricsProvider : LyricsProvider {
      * Visible for testing.
      */
     internal fun ttmlToLrc(rawTtml: String): String {
-        val ttml = rawTtml.replace("\uFEFF", "")
+        var ttml = rawTtml.replace("\uFEFF", "").trim()
+        if (ttml.contains("&lt;tt", ignoreCase = true)) {
+            ttml = ttml.replace("&lt;", "<").replace("&gt;", ">")
+                .replace("&quot;", "\"").replace("&#39;", "'")
+                .replace("&apos;", "'").replace("&amp;", "&")
+        }
+        if (!ttml.contains("<p", ignoreCase = true) && Regex("""\[\d{1,2}:\d{2}\.\d{2,3}]""").containsMatchIn(ttml)) {
+            return ttml
+        }
         val lrcBuilder = java.lang.StringBuilder()
 
         for (pMatch in pRegex.findAll(ttml)) {

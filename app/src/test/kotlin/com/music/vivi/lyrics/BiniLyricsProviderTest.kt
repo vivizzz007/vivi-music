@@ -52,4 +52,13 @@ class BiniLyricsProviderTest {
         assertTrue(lrc.contains("{bg}"))
         assertTrue(!lrc.contains("Amor"))
     }
+
+    @Test
+    fun supportsEscapedTtmlAndLrcFallback() {
+        val escaped = "&lt;tt&gt;&lt;body&gt;&lt;p begin=&quot;0:02.000&quot; end=&quot;0:04.000&quot;&gt;hello&lt;/p&gt;&lt;/body&gt;&lt;/tt&gt;"
+        assertEquals("[00:02.00]hello", BiniLyricsProvider.ttmlToLrc(escaped))
+
+        val rawLrc = "[00:02.00]hello"
+        assertEquals(rawLrc, BiniLyricsProvider.ttmlToLrc(rawLrc))
+    }
 }

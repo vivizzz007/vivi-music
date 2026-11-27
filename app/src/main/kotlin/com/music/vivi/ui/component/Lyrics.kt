@@ -260,6 +260,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.snapshotFlow
+import com.music.vivi.lyrics.LyricsUtils
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlin.math.roundToInt
@@ -330,7 +331,7 @@ fun Lyrics(
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val isPlaying by playerConnection.isPlaying.collectAsState()
-    val lyrics = remember(lyricsEntity) { lyricsEntity?.lyrics?.trim() }
+    val lyrics = remember(lyricsEntity) { lyricsEntity?.lyrics?.replace("\uFEFF", "")?.trim() }
 
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
@@ -350,10 +351,15 @@ fun Lyrics(
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
 
-    val lines = remember(lyrics) {
+    val isSynced =
+        remember(lyrics) {
+            !lyrics.isNullOrEmpty() && LyricsUtils.getSyncType(lyrics) != LyricsUtils.SyncType.NONE
+        }
+
+    val lines = remember(lyrics, isSynced) {
         if (lyrics == null || lyrics == LYRICS_NOT_FOUND) {
             emptyList()
-        } else if (lyrics.startsWith("[")) {
+        } else if (isSynced) {
             val parsedLines = parseLyrics(lyrics)
             parsedLines.map { entry ->
                 LyricsEntry(entry.time, entry.text, entry.words, agent = entry.agent, isBackground = entry.isBackground)
@@ -402,10 +408,6 @@ fun Lyrics(
             )
         }
     }
-    val isSynced =
-        remember(lyrics) {
-            !lyrics.isNullOrEmpty() && lyrics.startsWith("[")
-        }
 
     // State for translation status
     val translationStatus by LyricsTranslationHelper.status.collectAsState()

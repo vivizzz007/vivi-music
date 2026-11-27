@@ -6,6 +6,7 @@ package com.music.vivi.betterlyrics
 
 import org.w3c.dom.Element
 import org.w3c.dom.Node
+import java.util.Locale
 import javax.xml.parsers.DocumentBuilderFactory
 
 object TTMLParser {
@@ -72,61 +73,15 @@ object TTMLParser {
                 if (begin.isNullOrEmpty()) continue
                 
                 val startTime = parseTime(begin)
+                val pEnd = pElement.getAttribute("end")
+                val lineEndTime = if (pEnd.isNotEmpty()) parseTime(pEnd) else startTime + 3.0
                 val spanInfos = mutableListOf<SpanInfo>()
                 val backgroundLines = mutableListOf<ParsedLine>()
                 
                 // Get agent/vocalist info (ttm:agent attribute)
                 val agent = pElement.getAttributeByLocalName("agent").ifEmpty { null }
                 
-                // Parse child nodes to preserve whitespace between spans
-                val childNodes = pElement.childNodes
-                for (j in 0 until childNodes.length) {
-                    val node = childNodes.item(j)
-                    
-                    when (node.nodeType) {
-                        Node.ELEMENT_NODE -> {
-                            val span = node as? Element
-                            if (span?.localName?.lowercase() == "span") {
-                                // Check for background vocal role (ttm:role="x-bg")
-                                val role = span.getAttributeByLocalName("role")
-                                
-                                when (role) {
-                                    "x-bg" -> {
-                                        // Parse background vocal line
-                                        val bgLine = parseBackgroundSpan(span, startTime)
-                                        if (bgLine != null) {
-                                            backgroundLines.add(bgLine)
-                                        }
-                                    }
-                                    "x-translation", "x-roman" -> {
-                                        // Skip translation and romanization spans
-                                    }
-                                    else -> {
-                                        // Regular word span
-                                        val wordBegin = span.getAttribute("begin")
-                                        val wordEnd = span.getAttribute("end")
-                                        val wordText = span.textContent?.trim() ?: ""
-                                        
-                                        if (wordText.isNotEmpty() && wordBegin.isNotEmpty() && wordEnd.isNotEmpty()) {
-                                            val nextSibling = node.nextSibling
-                                            val hasTrailingSpace = nextSibling?.nodeType == Node.TEXT_NODE && 
-                                                nextSibling.textContent?.contains(Regex("\\s")) == true
-                                            
-                                            spanInfos.add(
-                                                SpanInfo(
-                                                    text = wordText,
-                                                    startTime = parseTime(wordBegin),
-                                                    endTime = parseTime(wordEnd),
-                                                    hasTrailingSpace = hasTrailingSpace
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                collectSpans(pElement, lineEndTime, spanInfos, backgroundLines, startTime)
                 
                 // Merge consecutive spans without whitespace between them into single words
                 val words = mergeSpansIntoWords(spanInfos)
@@ -159,6 +114,48 @@ object TTMLParser {
         return lines
     }
     
+    private fun collectSpans(
+        parent: Element,
+        fallbackEndTime: Double,
+        spanInfos: MutableList<SpanInfo>,
+        backgroundLines: MutableList<ParsedLine>,
+        lineStartTime: Double,
+    ) {
+        val childNodes = parent.childNodes
+        for (j in 0 until childNodes.length) {
+            val node = childNodes.item(j)
+            if (node.nodeType != Node.ELEMENT_NODE) continue
+            val span = node as? Element ?: continue
+            if (span.localName?.lowercase() != "span") continue
+            when (span.getAttributeByLocalName("role")) {
+                "x-bg" -> parseBackgroundSpan(span, lineStartTime)?.let { backgroundLines.add(it) }
+                "x-translation", "x-roman" -> Unit
+                else -> {
+                    val wordBegin = span.getAttribute("begin")
+                    val wordEnd = span.getAttribute("end")
+                    val hasNestedSpan = (0 until span.childNodes.length).any { idx ->
+                        val c = span.childNodes.item(idx)
+                        c.nodeType == Node.ELEMENT_NODE && (c as? Element)?.localName?.lowercase() == "span"
+                    }
+                    if (hasNestedSpan) {
+                        val nestedEnd = if (wordEnd.isNotEmpty()) parseTime(wordEnd) else fallbackEndTime
+                        collectSpans(span, nestedEnd, spanInfos, backgroundLines, lineStartTime)
+                    } else {
+                        val wordText = span.textContent?.trim() ?: ""
+                        if (wordText.isNotEmpty() && wordBegin.isNotEmpty()) {
+                            val start = parseTime(wordBegin)
+                            val end = if (wordEnd.isNotEmpty()) parseTime(wordEnd) else maxOf(start + 0.1, fallbackEndTime)
+                            val nextSibling = node.nextSibling
+                            val hasTrailingSpace = nextSibling?.nodeType == Node.TEXT_NODE &&
+                                nextSibling.textContent?.contains(Regex("\\s")) == true
+                            spanInfos.add(SpanInfo(wordText, start, end, hasTrailingSpace))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun parseBackgroundSpan(span: Element, parentStartTime: Double): ParsedLine? {
         val bgBegin = span.getAttribute("begin")
         val bgEnd = span.getAttribute("end")
@@ -304,11 +301,12 @@ object TTMLParser {
                 // Add agent info if present
                 val agentPrefix = if (!line.agent.isNullOrEmpty()) "{agent:${line.agent}}" else ""
                 
-                appendLine(String.format("[%02d:%02d.%02d]%s%s", minutes, seconds, centiseconds, agentPrefix, line.text))
+                appendLine(String.format(Locale.US, "[%02d:%02d.%02d]%s%s", minutes, seconds, centiseconds, agentPrefix, line.text))
                 
                 if (line.words.isNotEmpty()) {
                     val wordsData = line.words.joinToString("|") { word ->
-                        "${word.text}:${word.startTime}:${word.endTime}"
+                        val safeText = word.text.replace("|", " ").replace(":", " ")
+                        "$safeText:${word.startTime}:${word.endTime}"
                     }
                     appendLine("<$wordsData>")
                 }
@@ -320,11 +318,12 @@ object TTMLParser {
                     val bgSeconds = (bgTimeMs % 60000) / 1000
                     val bgCentiseconds = (bgTimeMs % 1000) / 10
                     
-                    appendLine(String.format("[%02d:%02d.%02d]{bg}%s", bgMinutes, bgSeconds, bgCentiseconds, bgLine.text))
+                    appendLine(String.format(Locale.US, "[%02d:%02d.%02d]{bg}%s", bgMinutes, bgSeconds, bgCentiseconds, bgLine.text))
                     
                     if (bgLine.words.isNotEmpty()) {
                         val bgWordsData = bgLine.words.joinToString("|") { word ->
-                            "${word.text}:${word.startTime}:${word.endTime}"
+                            val safeText = word.text.replace("|", " ").replace(":", " ")
+                            "$safeText:${word.startTime}:${word.endTime}"
                         }
                         appendLine("<$bgWordsData>")
                     }
@@ -335,26 +334,21 @@ object TTMLParser {
     
     private fun parseTime(timeStr: String): Double {
         return try {
-            when {
-                timeStr.contains(":") -> {
-                    val parts = timeStr.split(":")
+            val raw = timeStr.trim()
+            val isMs = raw.endsWith("ms", ignoreCase = true)
+            val clean = raw.replace(Regex("[a-zA-Z]+$"), "")
+            val seconds = when {
+                clean.contains(":") -> {
+                    val parts = clean.split(":")
                     when (parts.size) {
-                        2 -> {
-                            val minutes = parts[0].toDouble()
-                            val seconds = parts[1].toDouble()
-                            minutes * 60 + seconds
-                        }
-                        3 -> {
-                            val hours = parts[0].toDouble()
-                            val minutes = parts[1].toDouble()
-                            val seconds = parts[2].toDouble()
-                            hours * 3600 + minutes * 60 + seconds
-                        }
-                        else -> timeStr.toDoubleOrNull() ?: 0.0
+                        2 -> parts[0].toDouble() * 60 + parts[1].toDouble()
+                        3 -> parts[0].toDouble() * 3600 + parts[1].toDouble() * 60 + parts[2].toDouble()
+                        else -> clean.toDoubleOrNull() ?: 0.0
                     }
                 }
-                else -> timeStr.toDoubleOrNull() ?: 0.0
+                else -> clean.toDoubleOrNull() ?: 0.0
             }
+            if (isMs) seconds / 1000.0 else seconds
         } catch (e: Exception) {
             0.0
         }

@@ -80,4 +80,15 @@ class TtmlTest {
         val parsed = TTMLParser.parseTTML("not xml at all")
         assertTrue(parsed.isEmpty())
     }
+
+    @Test
+    fun testSecondsSuffixAndColonSanitization() {
+        val ttml = """<tt xmlns="http://www.w3.org/ns/ttml"><body><div><p begin="5.5s" end="8s"><span begin="5.5s">9:00</span> <span begin="6000ms" end="7500ms">am</span></p></div></body></tt>"""
+        val parsed = TTMLParser.parseTTML(ttml)
+        assertEquals(1, parsed.size)
+        assertEquals(2, parsed[0].words.size)
+        val lrc = TTMLParser.toLRC(parsed)
+        assertTrue(lrc.contains("[00:05.50]"))
+        assertTrue(lrc.contains("9 00:5.5:"))
+    }
 }

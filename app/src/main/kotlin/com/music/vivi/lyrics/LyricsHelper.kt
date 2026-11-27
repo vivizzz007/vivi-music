@@ -226,7 +226,7 @@ constructor(
                                         if (index == 0) {
                                             deadline = minOf(deadline, System.currentTimeMillis() + 500L)
                                         } else {
-                                            deadline = minOf(deadline, System.currentTimeMillis() + 800L)
+                                            deadline = minOf(deadline, System.currentTimeMillis() + 2500L)
                                         }
                                     }
                                 } else {

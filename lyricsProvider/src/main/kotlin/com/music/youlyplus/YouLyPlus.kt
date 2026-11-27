@@ -22,6 +22,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -247,7 +248,7 @@ object YouLyPlus {
         val millis = timeMs % 1000
         val prefix = if (isSyllable) "<" else "["
         val suffix = if (isSyllable) ">" else "]"
-        return "%s%02d:%02d.%03d%s".format(prefix, minutes, seconds, millis, suffix)
+        return String.format(Locale.US, "%s%02d:%02d.%03d%s", prefix, minutes, seconds, millis, suffix)
     }
 
 
