@@ -1053,15 +1053,15 @@ fun BottomSheetPlayer(
     val isCanvasActive = useNewPlayerDesign && spotifyCanvasUrl != null
     var showCanvasControls by rememberSaveable(mediaMetadata?.id, isCanvasActive) { mutableStateOf(true) }
 
-    LaunchedEffect(isCanvasActive, showCanvasControls, isPlaying, showInlineLyrics, sliderPosition, queueSheetState.isCollapsed) {
-        if (isCanvasActive && showCanvasControls && isPlaying && !showInlineLyrics && sliderPosition == null && queueSheetState.isCollapsed) {
+    LaunchedEffect(isCanvasActive, showCanvasControls, isPlaying, showInlineLyrics, sliderPosition) {
+        if (isCanvasActive && showCanvasControls && isPlaying && !showInlineLyrics && sliderPosition == null) {
             delay(4000L)
             showCanvasControls = false
         }
     }
 
     val canvasControlsAlpha by animateFloatAsState(
-        targetValue = if (isCanvasActive && !showCanvasControls && !showInlineLyrics && queueSheetState.isCollapsed) 0f else 1f,
+        targetValue = if (isCanvasActive && !showCanvasControls && !showInlineLyrics && !queueSheetState.isExpanded) 0f else 1f,
         label = "canvasControlsAlpha"
     )
 
@@ -3917,7 +3917,7 @@ fun BottomSheetPlayer(
             AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })
         }
 
-        if (isCanvasActive && !showCanvasControls && !showInlineLyrics && queueSheetState.isCollapsed) {
+        if (isCanvasActive && !showCanvasControls) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
