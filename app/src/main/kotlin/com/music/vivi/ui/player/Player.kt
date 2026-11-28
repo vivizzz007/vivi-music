@@ -3097,26 +3097,49 @@ fun BottomSheetPlayer(
                                     R.drawable.airplay_audio
                                 }
 
-                                if (isInListenTogetherRoom) {
-                                    oldAudioOutputPill(outputIconRes, label, tintColor)
-                                } else {
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .clickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null,
-                                                onClick = { showAudioDeviceBottomSheet = true }
-                                            )
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(outputIconRes),
-                                            contentDescription = label,
-                                            tint = tintColor,
-                                            modifier = Modifier.size(28.dp)
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .widthIn(max = 180.dp)
+                                        .padding(horizontal = 4.dp)
+                                        .then(
+                                            if (isInListenTogetherRoom) {
+                                                Modifier
+                                            } else {
+                                                Modifier.clickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = null,
+                                                    onClick = { showAudioDeviceBottomSheet = true }
+                                                )
+                                            }
                                         )
+                                ) {
+                                    if (isInListenTogetherRoom) {
+                                        oldAudioOutputPill(outputIconRes, label, tintColor)
+                                    } else {
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.size(36.dp)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(outputIconRes),
+                                                contentDescription = label,
+                                                tint = tintColor,
+                                                modifier = Modifier.size(28.dp)
+                                            )
+                                        }
                                     }
+
+                                    Spacer(modifier = Modifier.height(2.dp))
+
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold),
+                                        color = tintColor,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center
+                                    )
                                 }
 
                                 // Right: Queue
