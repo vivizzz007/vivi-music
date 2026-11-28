@@ -219,6 +219,7 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import android.graphics.Color as AndroidColor
 import androidx.compose.animation.core.Animatable
@@ -332,6 +333,7 @@ import com.music.vivi.constants.SpotifyCanvasEnabledKey
 import com.music.spotify.Spotify
 import com.music.spotify.SpotifyCanvasProvider
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
+import com.music.vivi.constants.MaxMotionArtworkCacheSizeKey
 import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.extensions.metadata
@@ -696,6 +698,8 @@ fun BottomSheetPlayer(
     )
 
     val albumTitle = mediaMetadata?.album?.title
+    val motionArtworkCache = LocalPlayerConnection.current?.service?.motionArtworkCache
+    val maxMotionArtworkCacheSize by rememberPreference(MaxMotionArtworkCacheSizeKey, defaultValue = 512)
     var canvasArtwork by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<Motionartwork?>(null) }
     var canvasFetchInFlight by remember(mediaMetadata?.id, albumTitle) { mutableStateOf(false) }
     var spotifyCanvasUrl by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<String?>(null) }
@@ -753,7 +757,7 @@ fun BottomSheetPlayer(
         
         val cacheKey = "${item.id}:${motionartworkSource.name}"
         // Use cached artwork if available
-        MotionartworkPlaybackCache.get(cacheKey)?.let { cached ->
+        MotionartworkPlaybackCache.get(cacheKey, context)?.let { cached ->
             canvasArtwork = cached
             spotifyCanvasUrl = null // Prioritize Motionartwork, disable Spotify Canvas
             return@LaunchedEffect
@@ -829,7 +833,12 @@ fun BottomSheetPlayer(
             withContext(Dispatchers.Main) {
                 canvasArtwork = validated
                 if (validated != null) {
-                    MotionartworkPlaybackCache.put(cacheKey, validated)
+                    MotionartworkPlaybackCache.put(
+                        cacheKey,
+                        validated,
+                        context = context,
+                        persist = maxMotionArtworkCacheSize != 0,
+                    )
                     spotifyCanvasUrl = null // Prioritize Motionartwork, disable Spotify Canvas
                 }
                 canvasFetchInFlight = false
@@ -1397,6 +1406,8 @@ fun BottomSheetPlayer(
                                                     videoUrl = canvasArtwork?.animatedTall ?: canvasArtwork?.animated ?: canvasArtwork?.videoUrl ?: "",
                                                     isPlaying = isPlaying,
                                                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+                                                    videoCache = motionArtworkCache,
+                                                    cacheEnabled = maxMotionArtworkCacheSize != 0,
                                                     modifier = Modifier.fillMaxSize()
                                                 )
                                             }
@@ -3820,6 +3831,8 @@ fun BottomSheetPlayer(
                                         videoUrl = motionVideoUrl,
                                         isPlaying = isPlaying,
                                         resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+                                        videoCache = motionArtworkCache,
+                                        cacheEnabled = maxMotionArtworkCacheSize != 0,
                                         modifier = Modifier.fillMaxSize()
                                     )
                                 } else {
@@ -4886,7 +4899,9 @@ private fun BackgroundVideoView(
     videoUrl: String,
     isPlaying: Boolean,
     modifier: Modifier = Modifier,
-    resizeMode: Int = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+    resizeMode: Int = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+    videoCache: SimpleCache? = LocalPlayerConnection.current?.service?.spotifyCanvasCache,
+    cacheEnabled: Boolean = true,
 ) {
     val context = LocalContext.current
     var isVideoReady by remember(videoUrl) { mutableStateOf(false) }
@@ -4900,14 +4915,11 @@ private fun BackgroundVideoView(
         }
     }
 
-
-    val spotifyCanvasCache = LocalPlayerConnection.current?.service?.spotifyCanvasCache
-
-    val exoPlayer = remember {
+    val exoPlayer = remember(videoCache, cacheEnabled) {
         val defaultDataSourceFactory = DefaultDataSource.Factory(context)
-        val mediaSourceFactory = if (spotifyCanvasCache != null) {
+        val mediaSourceFactory = if (videoCache != null && cacheEnabled) {
             val cacheDataSourceFactory = CacheDataSource.Factory()
-                .setCache(spotifyCanvasCache)
+                .setCache(videoCache)
                 .setUpstreamDataSourceFactory(defaultDataSourceFactory)
                 .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
             DefaultMediaSourceFactory(context)

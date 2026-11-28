@@ -108,11 +108,14 @@ import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.ui.component.CastButton
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
+import com.music.vivi.constants.MaxMotionArtworkCacheSizeKey
 import com.music.vivi.constants.MotionartworkSource
 import com.music.vivi.constants.MotionartworkSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.Motionartwork.tidal.TidalMotionartworkProvider
 import com.music.vivi.Motionartwork.Motionartwork
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import com.music.vivi.Motionartwork.normalizeForComparison
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.utils.resize
@@ -238,33 +241,67 @@ private fun getTextColor(playerBackground: PlayerBackgroundStyle): Color {
 
 object MotionartworkPlaybackCache {
     private const val defaultMaxSize = 256
+    private const val PREFS_NAME = "motion_artwork_map"
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = false }
     private val map = LinkedHashMap<String, Motionartwork>(defaultMaxSize, 0.75f, true)
     @Volatile private var maxSize = defaultMaxSize
 
     @Synchronized
-    fun get(mediaId: String): Motionartwork? {
+    fun get(mediaId: String, context: android.content.Context? = null): Motionartwork? {
         if (maxSize <= 0) return null
-        return map[mediaId]
+        map[mediaId]?.let { return it }
+        if (context == null || mediaId.isBlank()) return null
+        val raw = context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+            .getString(mediaId, null) ?: return null
+        return try {
+            json.decodeFromString<Motionartwork>(raw).also { putInMemory(mediaId, it) }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     @Synchronized
-    fun put(mediaId: String, artwork: Motionartwork) {
+    private fun putInMemory(mediaId: String, artwork: Motionartwork) {
         val limit = maxSize
-        if (limit <= 0) return
-        if (mediaId.isBlank()) return
+        if (limit <= 0 || mediaId.isBlank()) return
         map[mediaId] = artwork
         while (map.size > limit) {
             val it = map.entries.iterator()
             if (it.hasNext()) {
                 it.next()
                 it.remove()
+            } else {
+                break
             }
         }
     }
 
     @Synchronized
-    fun clear() {
+    fun put(
+        mediaId: String,
+        artwork: Motionartwork,
+        context: android.content.Context? = null,
+        persist: Boolean = true,
+    ) {
+        putInMemory(mediaId, artwork)
+        if (context != null && persist && mediaId.isNotBlank() && maxSize > 0) {
+            try {
+                context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(mediaId, json.encodeToString(artwork))
+                    .apply()
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    @Synchronized
+    fun clear(context: android.content.Context? = null) {
         map.clear()
+        context?.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+            ?.edit()
+            ?.clear()
+            ?.apply()
     }
 
     @Synchronized
@@ -775,9 +812,10 @@ private fun ThumbnailItem(
                     if (country.length == 2) country.lowercase(Locale.ROOT) else "us"
                 }
 
+                val maxMotionArtworkCacheSize by rememberPreference(MaxMotionArtworkCacheSizeKey, defaultValue = 512)
                 LaunchedEffect(item.mediaId, albumTitle, motionartworkSource) {
                     val cacheKey = "${item.mediaId}:${motionartworkSource.name}"
-                    MotionartworkPlaybackCache.get(cacheKey)?.let { cached ->
+                    MotionartworkPlaybackCache.get(cacheKey, context)?.let { cached ->
                         canvasArtwork = cached
                         return@LaunchedEffect
                     }
@@ -879,7 +917,12 @@ private fun ThumbnailItem(
                     
                     canvasArtwork = validated
                     if (validated != null) {
-                        MotionartworkPlaybackCache.put("${item.mediaId}:${motionartworkSource.name}", validated)
+                        MotionartworkPlaybackCache.put(
+                            "${item.mediaId}:${motionartworkSource.name}",
+                            validated,
+                            context = context,
+                            persist = maxMotionArtworkCacheSize != 0,
+                        )
                     }
                     canvasFetchInFlight = false
                 }

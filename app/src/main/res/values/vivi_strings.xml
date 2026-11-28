@@ -129,6 +129,10 @@
     <string name="max_spotify_canvas_cache_size">Max Spotify Canvas Cache Size</string>
     <string name="clear_spotify_canvas_cache">Clear Spotify Canvas Cache</string>
     <string name="clear_spotify_canvas_cache_dialog">Are you sure you want to delete all cached Spotify Canvas videos from internal storage?</string>
+    <string name="motion_artwork_cache">Motion Artwork Cache</string>
+    <string name="max_motion_artwork_cache_size">Max Motion Artwork Cache Size</string>
+    <string name="clear_motion_artwork_cache">Clear Motion Artwork Cache</string>
+    <string name="clear_motion_artwork_cache_dialog">Are you sure you want to delete all cached Motion Artwork videos from internal storage?</string>
     <string name="show_album_canvas">Show Album Motion Artwork</string>
     <string name="show_album_canvas_desc">Display animated motion artwork in album</string>
     <string name="canvas_load_only_wifi">Load only on Wi-Fi</string>

@@ -16,6 +16,7 @@ import com.music.vivi.Motionartwork.apple.AppleMusicMotionartworkProvider
 import com.music.vivi.Motionartwork.Motionartwork
 import com.music.vivi.Motionartwork.tidal.TidalMotionartworkProvider
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
+import com.music.vivi.constants.MaxMotionArtworkCacheSizeKey
 import com.music.vivi.ui.player.MotionartworkPlaybackCache
 import com.music.vivi.utils.isWifiConnected
 import com.music.vivi.utils.rememberPreference
@@ -33,8 +34,10 @@ fun rememberAlbumCanvas(
         if (albumTitle != null && artistName != null) "album|$albumTitle|$artistName" else null
     }
 
+    val context = LocalContext.current
+    val maxMotionArtworkCacheSize by rememberPreference(MaxMotionArtworkCacheSizeKey, defaultValue = 512)
     var canvasArtwork by remember(cacheKey) {
-        mutableStateOf(cacheKey?.let { MotionartworkPlaybackCache.get(it) })
+        mutableStateOf(cacheKey?.let { MotionartworkPlaybackCache.get(it, context) })
     }
     
     val storefront = remember {
@@ -43,7 +46,6 @@ fun rememberAlbumCanvas(
     }
 
     val canvasLoadOnlyWifi by rememberPreference(CanvasLoadOnlyWifiKey, defaultValue = false)
-    val context = LocalContext.current
 
     LaunchedEffect(albumTitle, artistName, firstSongTitle) {
         if (canvasArtwork != null || cacheKey == null) return@LaunchedEffect
@@ -143,7 +145,12 @@ fun rememberAlbumCanvas(
 
         if (validated != null) {
             canvasArtwork = validated
-            MotionartworkPlaybackCache.put(cacheKey, validated)
+            MotionartworkPlaybackCache.put(
+                cacheKey,
+                validated,
+                context = context,
+                persist = maxMotionArtworkCacheSize != 0,
+            )
         }
     }
 

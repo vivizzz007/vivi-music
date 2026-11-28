@@ -23,6 +23,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -30,6 +31,9 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.AspectRatioFrameLayout
 import com.music.innertube.YouTube
 import com.music.innertube.models.YouTubeClient
+import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.constants.MaxMotionArtworkCacheSizeKey
+import com.music.vivi.utils.rememberPreference
 import okhttp3.OkHttpClient
 import java.util.Locale
 import android.graphics.Color as AndroidColor
@@ -46,6 +50,8 @@ fun MotionartworkPlayer(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val motionArtworkCache = LocalPlayerConnection.current?.service?.motionArtworkCache
+    val maxMotionArtworkCacheSize by rememberPreference(MaxMotionArtworkCacheSizeKey, defaultValue = 512)
     val primary = primaryUrl?.takeIf { it.isNotBlank() }
     val fallback = fallbackUrl?.takeIf { it.isNotBlank() }
     val initial = primary ?: fallback ?: return
@@ -100,13 +106,20 @@ fun MotionartworkPlayer(
                 .build()
         }
     val mediaSourceFactory =
-        remember(okHttpClient) {
-            DefaultMediaSourceFactory(
-                DefaultDataSource.Factory(
-                    context,
-                    OkHttpDataSource.Factory(okHttpClient),
-                ),
+        remember(okHttpClient, motionArtworkCache, maxMotionArtworkCacheSize) {
+            val upstreamFactory = DefaultDataSource.Factory(
+                context,
+                OkHttpDataSource.Factory(okHttpClient),
             )
+            val dataSourceFactory = if (motionArtworkCache != null && maxMotionArtworkCacheSize != 0) {
+                CacheDataSource.Factory()
+                    .setCache(motionArtworkCache)
+                    .setUpstreamDataSourceFactory(upstreamFactory)
+                    .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+            } else {
+                upstreamFactory
+            }
+            DefaultMediaSourceFactory(dataSourceFactory)
         }
     val exoPlayer =
         remember(initial) {

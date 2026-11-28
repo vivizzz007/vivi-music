@@ -173,6 +173,7 @@ import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.RelatedSongMap
 import com.music.vivi.db.entities.Song
 import com.music.vivi.di.DownloadCache
+import com.music.vivi.di.MotionArtworkCache
 import com.music.vivi.di.PlayerCache
 import com.music.vivi.di.SpotifyCanvasCache
 import com.music.vivi.eq.EqualizerService
@@ -408,6 +409,10 @@ class MusicService :
     @Inject
     @SpotifyCanvasCache
     lateinit var spotifyCanvasCache: SimpleCache
+
+    @Inject
+    @MotionArtworkCache
+    lateinit var motionArtworkCache: SimpleCache
 
     lateinit var player: ExoPlayer
         private set
