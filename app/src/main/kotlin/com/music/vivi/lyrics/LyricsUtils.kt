@@ -12,11 +12,11 @@ import java.util.Locale
 
 @Suppress("RegExpRedundantEscape")
 object LyricsUtils {
-    val LINE_REGEX = "((\\[\\d{1,2}:\\d\\d\\.\\d{2,3}\\] ?)+)(.+)".toRegex()
+    val LINE_REGEX = "((\\[\\d{1,2}:\\d\\d\\.\\d{2,3}\\] ?)+)(.*?)".toRegex()
     val TIME_REGEX = "\\[(\\d{1,2}):(\\d\\d)\\.(\\d{2,3})\\]".toRegex()
     
     // Regex for rich sync format: [MM:SS.mm]<MM:SS.mm> word <MM:SS.mm> word ...
-    private val RICH_SYNC_LINE_REGEX = "\\[(\\d{1,2}):(\\d{2})\\.(\\d{2,3})\\](.+)".toRegex()
+    private val RICH_SYNC_LINE_REGEX = "\\[(\\d{1,2}):(\\d{2})\\.(\\d{2,3})\\](.*?)".toRegex()
     private val RICH_SYNC_WORD_REGEX = "<(\\d{1,2}):(\\d{2})\\.(\\d{2,3})>\\s*([^<]+)".toRegex()
     private val TRAILING_TIMESTAMP_REGEX = "<(\\d{1,2}):(\\d{2})\\.(\\d{2,3})>\\s*$".toRegex()
     
@@ -347,6 +347,7 @@ object LyricsUtils {
 
         val unescapedLyrics = lyrics
             .trim()
+            .replace("\uFEFF", "")
             .removePrefix("\"")
             .removeSuffix("\"")
             .replace("\\\\", "\\")
@@ -396,6 +397,7 @@ object LyricsUtils {
         // Unescape JSON string if needed
         val unescapedLyrics = lyrics
             .trim()
+            .replace("\uFEFF", "")
             .removePrefix("\"")
             .removeSuffix("\"")
             .replace("\\\\", "\\")
@@ -523,7 +525,9 @@ object LyricsUtils {
             }
             
             if (wordText.isNotBlank()) {
-                wordTimings.add(WordTimestamp(wordText, startTimeSeconds, endTimeSeconds))
+                // Clamp: ensure endTime is always at least 50ms after startTime (P1-7)
+                val clampedEnd = maxOf(startTimeSeconds + 0.05, endTimeSeconds)
+                wordTimings.add(WordTimestamp(wordText, startTimeSeconds, clampedEnd))
             }
         }
         
@@ -567,9 +571,16 @@ object LyricsUtils {
                     } else null
                     
                     if (wordTimestamps != null) {
-                        result.addAll(entries.map { entry ->
-                            LyricsEntry(entry.time, entry.text, wordTimestamps, agent = entry.agent, isBackground = entry.isBackground)
-                        })
+                        // Only attach word timings to the first occurrence (entries.size == 1).
+                        // Multi-timestamp lines (chorus repeats) must not share word timings
+                        // from the first occurrence — absolute times would be wrong for later ones.
+                        if (entries.size == 1) {
+                            result.addAll(entries.map { entry ->
+                                LyricsEntry(entry.time, entry.text, wordTimestamps, agent = entry.agent, isBackground = entry.isBackground)
+                            })
+                        } else {
+                            result.addAll(entries)
+                        }
                     } else {
                         result.addAll(entries)
                     }
@@ -620,7 +631,7 @@ object LyricsUtils {
             text = text.replaceFirst(BACKGROUND_REGEX, "")
         }
 
-        return timeMatchResults
+        val results = timeMatchResults
             .map { timeMatchResult ->
                 val min = timeMatchResult.groupValues[1].toLong()
                 val sec = timeMatchResult.groupValues[2].toLong()
@@ -630,8 +641,10 @@ object LyricsUtils {
                     mil *= 10
                 }
                 val time = min * DateUtils.MINUTE_IN_MILLIS + sec * DateUtils.SECOND_IN_MILLIS + mil
-                LyricsEntry(time, text, words, agent = agent, isBackground = isBackground)
+                // Allow empty text — blank timestamped lines mark instrumental gaps.
+                LyricsEntry(time, text.trim(), words, agent = agent, isBackground = isBackground)
             }.toList()
+        return results.takeIf { it.isNotEmpty() }
     }
 
     fun findCurrentLineIndex(
@@ -656,6 +669,9 @@ object LyricsUtils {
         for (index in lines.indices) {
             val line = lines[index]
             if (line.time > position) break // Past current position, stop early
+
+            // Skip the HEAD_LYRICS_ENTRY sentinel (time=0, empty text)
+            if (line.time == 0L && line.text.isEmpty()) continue
 
             // Determine this line's end time
             val lineEndMs: Long = if (!line.words.isNullOrEmpty()) {

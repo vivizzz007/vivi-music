@@ -29,4 +29,41 @@ class LyricsAnimationAdaptationTest {
         val lastWord = mainWords.last()
         assertTrue(lastWord.endTime > lastWord.startTime)
     }
+
+    @Test
+    fun bomPrefixedLrcIsDetectedAsSynced() {
+        val lrc = "\uFEFF[00:05.00]Hello world"
+        assertEquals(LyricsUtils.SyncType.LINE, LyricsUtils.getSyncType(lrc))
+        val parsed = LyricsUtils.parseLyrics(lrc)
+        assertEquals(1, parsed.size)
+        assertEquals("Hello world", parsed[0].text)
+    }
+
+    @Test
+    fun blankTimestampedLineIsPreservedForGaps() {
+        val lrc = "[00:05.00]First\n[00:10.00]\n[00:20.00]Second"
+        val parsed = LyricsUtils.parseLyrics(lrc)
+        assertEquals(3, parsed.size)
+        assertEquals("", parsed[1].text)
+        assertEquals(10_000L, parsed[1].time)
+    }
+
+    @Test
+    fun findActiveLineIndicesSkipsHeadSentinel() {
+        val entries = listOf(
+            LyricsEntry.HEAD_LYRICS_ENTRY,
+            LyricsEntry(time = 5_000L, text = "First")
+        )
+        val active = LyricsUtils.findActiveLineIndices(entries, 1_000L)
+        assertFalse(active.contains(0))
+    }
+
+    @Test
+    fun multiTimestampLineDoesNotAttachWordTimingsToCopies() {
+        val lrc = "[00:10.00][01:20.00]Chorus\n<Chorus:10.0:12.0>"
+        val parsed = LyricsUtils.parseLyrics(lrc)
+        assertEquals(2, parsed.size)
+        assertTrue(parsed[0].words == null)
+        assertTrue(parsed[1].words == null)
+    }
 }

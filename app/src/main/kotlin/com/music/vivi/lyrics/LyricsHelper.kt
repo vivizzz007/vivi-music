@@ -140,8 +140,13 @@ constructor(
                             launch {
                                 try {
                                     withTimeoutOrNull(3500L) {
-                                        val result = if (provider.name == "LrcRed" && !resolvedIsrc.isNullOrBlank()) {
+                                        val isrcResult = if (provider.name == "LrcRed" && !resolvedIsrc.isNullOrBlank()) {
                                             LrcRedLyricsProvider.getLyricsByIsrc(resolvedIsrc)
+                                        } else null
+
+                                        // If ISRC lookup failed or wasn't attempted, fall back to regular search
+                                        val result = if (isrcResult != null && isrcResult.isSuccess) {
+                                            isrcResult
                                         } else {
                                             provider.getLyrics(
                                                 mediaMetadata.id,
@@ -308,6 +313,7 @@ constructor(
     ) {
         currentLyricsJob?.cancel()
 
+        // Independent cache key for getAllLyrics (separate from getLyrics's mediaMetadata.id key)
         val cacheKey = "$songArtists-$songTitle".replace(" ", "")
         cache.get(cacheKey)?.let { results ->
             results.forEach {

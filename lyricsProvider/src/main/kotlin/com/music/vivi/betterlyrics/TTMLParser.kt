@@ -62,7 +62,7 @@ object TTMLParser {
             val factory = DocumentBuilderFactory.newInstance()
             factory.isNamespaceAware = true
             val builder = factory.newDocumentBuilder()
-            val doc = builder.parse(ttml.byteInputStream())
+            val doc = builder.parse(ttml.replace("\uFEFF", "").trim().byteInputStream())
             
             val pElements = doc.getElementsByTagNameNS("*", "p")
             
@@ -141,13 +141,17 @@ object TTMLParser {
                         val nestedEnd = if (wordEnd.isNotEmpty()) parseTime(wordEnd) else fallbackEndTime
                         collectSpans(span, nestedEnd, spanInfos, backgroundLines, lineStartTime)
                     } else {
-                        val wordText = span.textContent?.trim() ?: ""
+                        val rawWordText = span.textContent ?: ""
+                        val wordText = rawWordText.trim()
                         if (wordText.isNotEmpty() && wordBegin.isNotEmpty()) {
                             val start = parseTime(wordBegin)
                             val end = if (wordEnd.isNotEmpty()) parseTime(wordEnd) else maxOf(start + 0.1, fallbackEndTime)
                             val nextSibling = node.nextSibling
-                            val hasTrailingSpace = nextSibling?.nodeType == Node.TEXT_NODE &&
-                                nextSibling.textContent?.contains(Regex("\\s")) == true
+                            // Detect trailing space: either the raw text ends with whitespace,
+                            // or the next sibling is a text node containing whitespace.
+                            val hasTrailingSpace = rawWordText.lastOrNull()?.isWhitespace() == true ||
+                                (nextSibling?.nodeType == Node.TEXT_NODE &&
+                                    nextSibling.textContent?.contains(Regex("\\s")) == true)
                             spanInfos.add(SpanInfo(wordText, start, end, hasTrailingSpace))
                         }
                     }
@@ -178,7 +182,11 @@ object TTMLParser {
                     val wordEnd = innerSpan.getAttribute("end")
                     val wordText = innerSpan.textContent?.trim() ?: ""
                     
-                    if (wordText.isNotEmpty() && wordBegin.isNotEmpty() && wordEnd.isNotEmpty()) {
+                    if (wordText.isNotEmpty() && wordBegin.isNotEmpty()) {
+                        val start = parseTime(wordBegin)
+                        // P1-1: use fallback end time (like collectSpans) instead of requiring wordEnd
+                        val bgEndFallback = if (bgEnd.isNotEmpty()) parseTime(bgEnd) else bgStartTime + 3.0
+                        val end = if (wordEnd.isNotEmpty()) parseTime(wordEnd) else maxOf(start + 0.1, bgEndFallback)
                         val nextSibling = node.nextSibling
                         val hasTrailingSpace = nextSibling?.nodeType == Node.TEXT_NODE && 
                             nextSibling.textContent?.contains(Regex("\\s")) == true
@@ -187,7 +195,7 @@ object TTMLParser {
                             SpanInfo(
                                 text = wordText,
                                 startTime = parseTime(wordBegin),
-                                endTime = parseTime(wordEnd),
+                                endTime = end,
                                 hasTrailingSpace = hasTrailingSpace
                             )
                         )
@@ -293,7 +301,7 @@ object TTMLParser {
     fun toLRC(lines: List<ParsedLine>): String {
         return buildString {
             lines.forEach { line ->
-                val timeMs = (line.startTime * 1000).toLong()
+                val timeMs = (line.startTime * 1000).toLong().coerceAtLeast(0L)
                 val minutes = timeMs / 60000
                 val seconds = (timeMs % 60000) / 1000
                 val centiseconds = (timeMs % 1000) / 10
@@ -313,7 +321,7 @@ object TTMLParser {
                 
                 // Add background vocals as separate lines
                 line.backgroundLines.forEach { bgLine ->
-                    val bgTimeMs = (bgLine.startTime * 1000).toLong()
+                    val bgTimeMs = (bgLine.startTime * 1000).toLong().coerceAtLeast(0L)
                     val bgMinutes = bgTimeMs / 60000
                     val bgSeconds = (bgTimeMs % 60000) / 1000
                     val bgCentiseconds = (bgTimeMs % 1000) / 10

@@ -213,6 +213,10 @@ object LrcCxLyricsProvider : LyricsProvider {
                     if (isBg) sb.append("{bg}")
                     if (agent != null) sb.append("{agent:$agent}")
 
+                    // Only emit word-level <MM:SS.mm> tags when at least one span has a
+                    // timestamp different from lineStartMs (real word-sync TTML).
+                    val hasRealSpanTiming = pieces.any { (ms, _) -> ms != lineStartMs }
+
                     var lastMs = -1L
                     var hasSpanTags = false
                     for ((ms, text) in pieces) {
@@ -220,7 +224,7 @@ object LrcCxLyricsProvider : LyricsProvider {
                             sb.append(text)
                             continue
                         }
-                        if (ms != lastMs) {
+                        if (hasRealSpanTiming && ms != lastMs) {
                             sb.append("<${formatTime(ms)}>")
                             lastMs = ms
                             hasSpanTags = true

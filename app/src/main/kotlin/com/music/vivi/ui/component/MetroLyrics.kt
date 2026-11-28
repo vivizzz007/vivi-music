@@ -256,9 +256,8 @@ fun MetroLyricsLine(
 
     val agentAlignment = when {
         entry.isBackground -> Alignment.CenterHorizontally
-        entry.agent == "v1" -> Alignment.Start
-        entry.agent == "v2" -> Alignment.End
-        entry.agent == "v1000" -> Alignment.CenterHorizontally
+        entry.agent == "v1" || entry.agent == "v1000" || entry.agent == "group" -> Alignment.Start
+        entry.agent == "v2" || entry.agent == "v2000" || entry.agent == "other" -> Alignment.End
         else -> when (lyricsTextPosition) {
             LyricsPosition.LEFT -> Alignment.Start
             LyricsPosition.CENTER -> Alignment.CenterHorizontally
@@ -268,9 +267,8 @@ fun MetroLyricsLine(
 
     val agentTextAlign = when {
         entry.isBackground -> TextAlign.Center
-        entry.agent == "v1" -> TextAlign.Left
-        entry.agent == "v2" -> TextAlign.Right
-        entry.agent == "v1000" -> TextAlign.Center
+        entry.agent == "v1" || entry.agent == "v1000" || entry.agent == "group" -> TextAlign.Left
+        entry.agent == "v2" || entry.agent == "v2000" || entry.agent == "other" -> TextAlign.Right
         else -> when (lyricsTextPosition) {
             LyricsPosition.LEFT -> TextAlign.Left
             LyricsPosition.CENTER -> TextAlign.Center

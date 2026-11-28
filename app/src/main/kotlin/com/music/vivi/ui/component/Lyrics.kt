@@ -590,8 +590,8 @@ fun Lyrics(
     val itemHeights = remember(lyrics, mergedLyricsList) { mutableStateMapOf<Int, Int>() }
     var isInitialLayout by remember(lyrics, mergedLyricsList) { mutableStateOf(true) }
 
-    LaunchedEffect(showLyrics, lyrics, mergedLyricsList.size) {
-        if (showLyrics && mergedLyricsList.isNotEmpty()) {
+    LaunchedEffect(showLyrics, lyrics, mergedLyricsList.size, lyricsAnimationStyle) {
+        if (lyricsAnimationStyle == LyricsAnimationStyle.METRO_LYRICS && showLyrics && mergedLyricsList.isNotEmpty()) {
             isInitialLayout = true
             snapshotFlow { 
                 val h = itemHeights.toMap()
@@ -600,6 +600,8 @@ fun Lyrics(
                 (windowStart..windowEnd).all { h.containsKey(it) } 
             }.first { it }
             delay(150)
+            isInitialLayout = false
+        } else {
             isInitialLayout = false
         }
     }
@@ -669,7 +671,7 @@ fun Lyrics(
     }
 
     LaunchedEffect(lyrics, lines, lyricsAnimationStyle) {
-        if (lyrics.isNullOrEmpty() || !lyrics.startsWith("[")) {
+        if (lyrics.isNullOrEmpty() || !isSynced) {
             currentLineIndex = -1
             activeLineIndices = emptySet()
             return@LaunchedEffect
@@ -795,14 +797,17 @@ fun Lyrics(
         } else if (lastPreviewTime != 0L) {
             delay(LyricsPreviewTime)
             lastPreviewTime = 0L
-            isAutoScrollEnabled = true
+            // Note: do NOT force isAutoScrollEnabled = true here — that caused
+            // auto-scroll to snap back after any manual scroll. Users must tap the
+            // "back to current line" button to re-enable auto-scroll.
         }
     }
 
     suspend fun performSmoothPageScroll(targetIndex: Int, duration: Int = 700) {
         isAnimating = true
         try {
-            val lookUpIndex = if (isLyricsProviderShown) targetIndex + 1 else targetIndex
+            val safeTarget = targetIndex.coerceAtLeast(0)
+            val lookUpIndex = if (isLyricsProviderShown) safeTarget + 1 else safeTarget
             val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == lookUpIndex }
             if (itemInfo != null) {
                 if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
@@ -831,7 +836,7 @@ fun Lyrics(
                 }
             } else {
                 // Item not visible — jump to it so next cycle can animate from a visible position
-                lazyListState.scrollToItem(targetIndex)
+                lazyListState.scrollToItem(safeTarget)
             }
         } finally {
             isAnimating = false
@@ -2118,95 +2123,6 @@ fun Lyrics(
                         }
                     }
                     return@itemsIndexed
-                    } else if (lyricsAnimationStyle == LyricsAnimationStyle.METRO_LYRICS) {
-                        val currentLineTime = if (displayedCurrentLineIndex >= 0 && displayedCurrentLineIndex < lines.size) {
-                            lines[displayedCurrentLineIndex].time
-                        } else -1L
-                        val isLineAtSameTime = item.time == currentLineTime
-                        val isActiveByIndex = index == displayedCurrentLineIndex
-                        val isActiveByTime = isLineAtSameTime && displayedCurrentLineIndex >= 0
-
-                        val pairedMainLineIndex = if (item.isBackground) (index - 1 downTo 0).firstOrNull { lines.getOrNull(it)?.isBackground == false } ?: -1 else -1
-                        val isInGapWithMain = if (item.isBackground && pairedMainLineIndex != -1) {
-                            val pairedMainLine = lines[pairedMainLineIndex]
-                            effectivePlaybackPosition >= pairedMainLine.time && effectivePlaybackPosition <= item.time
-                        } else false
-                        val bgVisible = !item.isBackground || (activeLineIndices.contains(pairedMainLineIndex) || activeLineIndices.contains(index) || isInGapWithMain)
-
-                        MetroLyricsLine(
-                            entry = item,
-                            nextEntryTime = lines.getOrNull(index + 1)?.time,
-                            effectivePlaybackPosition = effectivePlaybackPosition,
-                            lyricsOffset = lyricsOffset,
-                            isSynced = isSynced,
-                            isActive = isActiveByIndex || isActiveByTime,
-                            distanceFromCurrent = kotlin.math.abs(index - displayedCurrentLineIndex),
-                            lyricsTextPosition = lyricsTextPosition,
-                            textColor = textColor,
-                            showRomanized = currentSong?.romanizeLyrics == true && (
-                                    romanizeAllLyrics ||
-                                            romanizeJapaneseLyrics ||
-                                            romanizeKoreanLyrics ||
-                                            romanizeRussianLyrics ||
-                                            romanizeUkrainianLyrics ||
-                                            romanizeSerbianLyrics ||
-                                            romanizeBulgarianLyrics ||
-                                            romanizeBelarusianLyrics ||
-                                            romanizeKyrgyzLyrics ||
-                                            romanizeMacedonianLyrics ||
-                                            romanizeChineseLyrics ||
-                                            romanizeHindiLyrics ||
-                                            romanizePunjabiLyrics ||
-                                            romanizeMalayalamLyrics),
-                            showTranslated = hasActiveTranslations,
-                            isAutoScrollActive = isAutoScrollEnabled,
-                            isSelectionModeActive = isSelectionModeActive,
-                            isSelected = isSelected,
-                            expressiveAccent = expressiveAccent,
-                            bgVisible = bgVisible,
-                            onClick = {
-                                if (isSelectionModeActive) {
-                                    if (isSelected) {
-                                        selectedIndices.remove(index)
-                                        if (selectedIndices.isEmpty()) isSelectionModeActive = false
-                                    } else {
-                                        if (selectedIndices.size < maxSelectionLimit) selectedIndices.add(index)
-                                        else showMaxSelectionToast = true
-                                    }
-                                } else if (isSynced && changeLyrics && !isGuest) {
-                                    val lyricsOffset = currentSong?.song?.lyricsOffset ?: 0
-                                    playerConnection.seekTo((item.time - lyricsOffset).coerceAtLeast(0))
-                                    scope.launch {
-                                        lazyListState.scrollToItem(index = index)
-                                        val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
-                                        if (itemInfo != null) {
-                                            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                                            val center = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
-                                            val itemCenter = itemInfo.offset + itemInfo.size / 2
-                                            val offset = itemCenter - center
-                                            if (kotlin.math.abs(offset) > 10) {
-                                                lazyListState.animateScrollBy(
-                                                    value = offset.toFloat(),
-                                                    animationSpec = tween(durationMillis = 1500)
-                                                )
-                                            }
-                                        }
-                                    }
-                                    lastPreviewTime = 0L
-                                }
-                            },
-                            onLongClick = {
-                                if (!isSelectionModeActive) {
-                                    isSelectionModeActive = true
-                                    selectedIndices.add(index)
-                                } else if (!isSelected && selectedIndices.size < maxSelectionLimit) {
-                                    selectedIndices.add(index)
-                                } else if (!isSelected) {
-                                    showMaxSelectionToast = true
-                                }
-                            }
-                        )
-                        return@itemsIndexed
                     }
                     val itemModifier = Modifier
                         .fillMaxWidth()
@@ -2233,6 +2149,7 @@ fun Lyrics(
                                     // Professional seek action with smooth animation
                                     val lyricsOffset = currentSong?.song?.lyricsOffset ?: 0
                                     playerConnection.seekTo((item.time - lyricsOffset).coerceAtLeast(0))
+                                    isAutoScrollEnabled = true
                                     // Smooth slow scroll when clicking on lyrics (3 seconds)
                                     scope.launch {
                                         // First scroll to the clicked item without animation
@@ -2436,7 +2353,7 @@ fun Lyrics(
                                 lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                             )
                         }
-                        if (currentSong?.romanizeLyrics == true
+                        if (currentSong?.romanizeLyrics != false
                             && (romanizeAllLyrics ||
                                     romanizeJapaneseLyrics ||
                                     romanizeKoreanLyrics ||
@@ -2558,8 +2475,13 @@ fun Lyrics(
                     onClick = {
                         if (selectedIndices.isNotEmpty()) {
                             val sortedIndices = selectedIndices.sorted()
+                            val shareSourceLines = if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1 && isSynced) {
+                                lines.filterNot { it === LyricsEntry.HEAD_LYRICS_ENTRY }.withInstrumentalGaps()
+                            } else {
+                                lines
+                            }
                             val selectedLyricsText = sortedIndices
-                                .mapNotNull { lines.getOrNull(it)?.text }
+                                .mapNotNull { shareSourceLines.getOrNull(it)?.text }
                                 .joinToString("\n")
 
                             if (selectedLyricsText.isNotBlank()) {

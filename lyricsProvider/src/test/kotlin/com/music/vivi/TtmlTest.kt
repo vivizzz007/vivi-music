@@ -91,4 +91,36 @@ class TtmlTest {
         assertTrue(lrc.contains("[00:05.50]"))
         assertTrue(lrc.contains("9 00:5.5:"))
     }
+
+    @Test
+    fun testBomPrefixedTtml() {
+        val ttml = "\uFEFF" + """<tt xmlns="http://www.w3.org/ns/ttml"><body><div><p begin="0:01.000" end="0:03.000">bom line</p></div></body></tt>"""
+        val parsed = TTMLParser.parseTTML(ttml)
+        assertEquals(1, parsed.size)
+        assertEquals("bom line", parsed[0].text)
+    }
+
+    @Test
+    fun testBackgroundSpanWithoutEndAttribute() {
+        val ttml = """<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata"><body><div><p begin="0:05.000" end="0:08.000"><span begin="0:05.000" end="0:07.000">main</span><span begin="0:05.500" ttm:role="x-bg"><span begin="0:05.500">echo</span></span></p></div></body></tt>"""
+        val parsed = TTMLParser.parseTTML(ttml)
+        assertEquals(1, parsed.size)
+        assertEquals(1, parsed[0].backgroundLines.size)
+        assertEquals("echo", parsed[0].backgroundLines[0].text)
+    }
+
+    @Test
+    fun testTrailingSpaceInsideSpan() {
+        val ttml = """<tt xmlns="http://www.w3.org/ns/ttml"><body><div><p begin="0:01.000" end="0:03.000"><span begin="0:01.000" end="0:02.000">hello </span><span begin="0:02.000" end="0:03.000">world</span></p></div></body></tt>"""
+        val parsed = TTMLParser.parseTTML(ttml)
+        assertEquals(1, parsed.size)
+        assertEquals(2, parsed[0].words.size)
+        assertEquals("hello world", parsed[0].text)
+    }
+
+    @Test
+    fun testNegativeTimeClampedInToLrc() {
+        val lrc = TTMLParser.toLRC(listOf(TTMLParser.ParsedLine(text = "intro", startTime = -1.5, words = emptyList())))
+        assertTrue(lrc.startsWith("[00:00.00]"))
+    }
 }
