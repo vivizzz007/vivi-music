@@ -3917,7 +3917,7 @@ fun BottomSheetPlayer(
             AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })
         }
 
-        if (isCanvasActive && !showCanvasControls) {
+        if (isCanvasActive && !showCanvasControls && queueSheetState.isCollapsed) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
