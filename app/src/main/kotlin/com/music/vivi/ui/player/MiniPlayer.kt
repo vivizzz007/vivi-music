@@ -134,6 +134,7 @@ import com.music.vivi.ui.utils.isLetterboxedYtThumbnail
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
+import com.music.vivi.vivimusic.rememberActiveBluetoothDeviceName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -238,8 +239,8 @@ private fun NewMiniPlayer(
     val isCasting by castHandler?.isCasting?.collectAsState() ?: remember { mutableStateOf(false) }
 
     // Audio Output State
-    val context = LocalContext.current
-    val isBluetoothConnected = isBluetoothHeadphoneConnected(context)
+    val preferredDeviceId by playerConnection.service.preferredDeviceIdFlow.collectAsState()
+    val isBluetoothConnected = rememberActiveBluetoothDeviceName(preferredDeviceId) != null
     var showAudioDeviceBottomSheet by remember { mutableStateOf(false) }
 
     // Swipe settings

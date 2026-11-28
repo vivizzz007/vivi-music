@@ -261,7 +261,7 @@ import com.music.vivi.extensions.move
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.ExoDownloadService
-import com.music.vivi.vivimusic.getConnectedBluetoothDeviceName
+import com.music.vivi.vivimusic.rememberActiveBluetoothDeviceName
 import com.music.vivi.vivimusic.isBuds
 import com.music.vivi.vivimusic.isSpeaker
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
@@ -526,46 +526,8 @@ fun BottomSheetPlayer(
         playerConnection.service.addToQueueAutomix(automix[0], 0)
     }
 
-    val bluetoothDeviceName by produceState<String?>(initialValue = getConnectedBluetoothDeviceName(context)) {
-        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                value = getConnectedBluetoothDeviceName(context)
-            }
-        }
-
-        val callback = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            object : android.media.AudioDeviceCallback() {
-                override fun onAudioDevicesAdded(addedDevices: Array<out android.media.AudioDeviceInfo>?) {
-                    value = getConnectedBluetoothDeviceName(context)
-                }
-                override fun onAudioDevicesRemoved(removedDevices: Array<out android.media.AudioDeviceInfo>?) {
-                    value = getConnectedBluetoothDeviceName(context)
-                }
-            }
-        } else null
-
-        val filter = IntentFilter().apply {
-            addAction(AudioManager.ACTION_HEADSET_PLUG)
-            addAction("android.bluetooth.adapter.action.STATE_CHANGED")
-            addAction("android.bluetooth.device.action.ACL_CONNECTED")
-            addAction("android.bluetooth.device.action.ACL_DISCONNECTED")
-            addAction("android.media.AUDIO_BECOMING_NOISY")
-        }
-        
-        context.registerReceiver(receiver, filter)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && callback != null) {
-            audioManager.registerAudioDeviceCallback(callback, Handler(Looper.getMainLooper()))
-        }
-        
-        awaitDispose {
-            context.unregisterReceiver(receiver)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && callback != null) {
-                audioManager.unregisterAudioDeviceCallback(callback)
-            }
-        }
-    }
+    val preferredDeviceId by playerConnection.service.preferredDeviceIdFlow.collectAsState()
+    val bluetoothDeviceName = rememberActiveBluetoothDeviceName(preferredDeviceId)
 
     var showAudioDeviceBottomSheet by remember { mutableStateOf(false) }
     var lastNonNullName by remember { mutableStateOf<String?>(null) }

@@ -4,11 +4,20 @@
  */
 package com.music.vivi.vivimusic
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.platform.LocalContext
 
 /**
  * Checks if Bluetooth headphones (A2DP or SCO) are currently connected.
@@ -35,8 +44,22 @@ fun isBluetoothHeadphoneConnected(context: Context): Boolean {
  * Returns the name of the currently connected Bluetooth audio device, or null if none.
  * Only returns the name if Bluetooth is the ACTIVE audio output.
  */
-fun getConnectedBluetoothDeviceName(context: Context): String? {
+fun getConnectedBluetoothDeviceName(context: Context, preferredDeviceId: Int? = null): String? {
     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && preferredDeviceId != null) {
+        val preferred = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            .find { it.id == preferredDeviceId }
+        if (preferred != null) {
+            return if (preferred.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                preferred.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+            ) {
+                preferred.productName?.toString()
+            } else {
+                null
+            }
+        }
+    }
 
     // Check if Bluetooth is actually the active route
     val isBluetoothActive = audioManager.isBluetoothA2dpOn || audioManager.isBluetoothScoOn
@@ -52,6 +75,57 @@ fun getConnectedBluetoothDeviceName(context: Context): String? {
     } else {
         return null
     }
+}
+
+@Composable
+fun rememberActiveBluetoothDeviceName(preferredDeviceId: Int?): String? {
+    val context = LocalContext.current
+    val name by produceState<String?>(
+        initialValue = getConnectedBluetoothDeviceName(context, preferredDeviceId),
+        key1 = preferredDeviceId,
+    ) {
+        value = getConnectedBluetoothDeviceName(context, preferredDeviceId)
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                value = getConnectedBluetoothDeviceName(context, preferredDeviceId)
+            }
+        }
+
+        val callback = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            object : android.media.AudioDeviceCallback() {
+                override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
+                    value = getConnectedBluetoothDeviceName(context, preferredDeviceId)
+                }
+
+                override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) {
+                    value = getConnectedBluetoothDeviceName(context, preferredDeviceId)
+                }
+            }
+        } else null
+
+        val filter = IntentFilter().apply {
+            addAction(AudioManager.ACTION_HEADSET_PLUG)
+            addAction("android.bluetooth.adapter.action.STATE_CHANGED")
+            addAction("android.bluetooth.device.action.ACL_CONNECTED")
+            addAction("android.bluetooth.device.action.ACL_DISCONNECTED")
+            addAction("android.media.AUDIO_BECOMING_NOISY")
+        }
+
+        context.registerReceiver(receiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && callback != null) {
+            audioManager.registerAudioDeviceCallback(callback, Handler(Looper.getMainLooper()))
+        }
+
+        awaitDispose {
+            context.unregisterReceiver(receiver)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && callback != null) {
+                audioManager.unregisterAudioDeviceCallback(callback)
+            }
+        }
+    }
+    return name
 }
 
 /**

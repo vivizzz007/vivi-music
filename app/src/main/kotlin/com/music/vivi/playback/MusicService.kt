@@ -294,6 +294,7 @@ class MusicService :
     private var isPausedByVolumeMute = false
     var preferredDeviceId: Int? = null //added for audio device switching
         private set//improvement
+    val preferredDeviceIdFlow = MutableStateFlow<Int?>(null)
 
     private var crossfadeEnabled = false
     private var crossfadeDuration = 6000f
@@ -389,6 +390,7 @@ class MusicService :
             val deviceInfo = devices.find { it.id == deviceId }
             player.setPreferredAudioDevice(deviceInfo)
             preferredDeviceId = deviceId
+            preferredDeviceIdFlow.value = deviceId
         }
     }
 //
